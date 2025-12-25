@@ -52,7 +52,6 @@ export default function Cart() {
 
   return (
     <div className="container mt-4">
-      <h1> CART PAGE RENDERED </h1>
       <h2 className="mb-4">Your Cart</h2>
 
       {cart.length === 0 ? (

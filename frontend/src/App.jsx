@@ -1,10 +1,11 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./auth/useAuth";
-import ProtectedRoute from "./components/ProtectedRoute";
+
 
 import Home from "./pages/Home";
 import Navbar from "./components/Navbar";
 import Cart from "./pages/Cart";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Checkout from "./pages/Checkout";
 import Orders from "./pages/Orders";
 import Restaurant from "./pages/Restaurant";
