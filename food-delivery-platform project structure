@@ -1,0 +1,80 @@
+food-delivery/
+│── backend/
+│   │── package.json
+│   │── yarn.lock
+│   │── .env
+│   │── src/
+│   │   │── server.js
+│   │   │── config/
+│   │   │   │── db.js
+│   │   │   ├── models/
+│   │   │   │   ├── User.js
+│   │   │   │   ├── Restaurant.js
+│   │   │   │   ├── Product.js
+│   │   │   │   └── Order.js
+│   │   │   ├── controllers/
+│   │   │   │   ├── authController.js
+│   │   │   │   ├── restaurantController.js
+│   │   │   │   ├── productController.js
+│   │   │   │   └── orderController.js
+│   │   │   ├── routes/
+│   │   │   │   ├── authRoutes.js
+│   │   │   │   ├── restaurantRoutes.js
+│   │   │   │   ├── productRoutes.js
+│   │   │   │   └── orderRoutes.js
+│   │   │   ├── middlewares/
+│   │   │   │   ├── authMiddleware.js
+│   │   │   │   └── errorHandler.js
+│   │   │   ├── utils/
+│   │   │   │   └── jwt.js
+│   │   │   └── sockets/
+│   │   │       └── orderSocket.js
+│
+│── frontend/
+│   └── client/
+│       │── package.json
+│       │── vite.config.js
+│       │── yarn.lock
+│       │── public/
+│       │── index.html
+│       │── src/
+│       │   │── main.jsx
+│       │   │── App.jsx
+│       │   ├── components/
+│       │   │   ├── Navbar.jsx
+│       │   │   ├── RestaurantCard.jsx
+│       │   │   ├── ProductCard.jsx
+│       │   │   └── OrderStatus.jsx
+│       │   ├── pages/
+│       │   │   ├── Home.jsx
+│       │   │   ├── Restaurant.jsx
+│       │   │   ├── Cart.jsx
+│       │   │   ├── Checkout.jsx
+│       │   │   └── Orders.jsx
+│       │   ├── context/
+│       │   │   └── AuthContext.jsx
+│       │   └── services/
+│       │       ├── api.js
+│       │       └── auth.js
+│
+│── admin-dashboard/ (optional separate React app)
+│   │── package.json
+│   │── yarn.lock
+│   │── vite.config.js
+│   │── public/
+│   │── src/
+│   │   │── main.jsx
+│   │   │── App.jsx
+│   │   ├── components/
+│   │   │   └── Sidebar.jsx
+│   │   ├── pages/
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── Managerestaurant.jsx
+│   │   │   ├── ManageOrders.jsx
+│   │   │   └── Users.jsx
+│   │   └── services/
+│   │       └── adminApi.js
+│
+│── docker-compose.yml
+│── README.md
+
