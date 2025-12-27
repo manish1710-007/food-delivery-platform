@@ -35,6 +35,58 @@ const buildOrderItems = async (items) => {
   return { orderItems, total };
 };
 
+
+//checkout from cart
+const checkoutFromCart = async (req, res, next) => {
+  try {
+    const { restaurant, deliveryAddress, phone, paymentMethod } = req.body;
+
+    if (!restaurant || !deliveryAddress || !phone) {
+      return res.status(400).json({ message: 'Missing checkout fields' });
+    }
+
+    const cart = await Cart.findOne({ user: req.user._id });
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).json({ message: 'Cart is empty' });
+    }
+
+    // build order items from cart
+
+    let totalPrice = 0;
+
+    const orderItems = cart.items.map(item => {
+      totalPrice += item.price * item.quantity;
+      return {
+        product: item.product,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity
+      };
+    });
+
+    // create order
+    const order = await Order.create({
+      user: req.user._id,
+      restaurant, 
+      items: orderItems,
+      totalPrice,
+      paymentMethod: paymentMethod || 'cod',
+      paymentStatus: paymentMethod === 'card' ? 'paid' : 'pending',
+      deliveryAddress,
+      phone
+    });
+
+   // clear cart
+   cart.items = [];
+   await cart.save();
+
+   res.status(201).json(order);
+  } catch (err) {
+    next(err);
+  }
+};
+
+
 const createOrder = async (req, res, next) => {
   try {
     await Cart.findOneAndDelete({ user: req.user._id });
@@ -154,56 +206,6 @@ const updateOrderStatus = async (req, res, next) => {
     await order.save();
 
     return res.json(order);
-  } catch (err) {
-    next(err);
-  }
-};
-
-//checkout from cart
-const checkoutFromCart = async (req, res, next) => {
-  try {
-    const { restaurant, deliveryAddress, phone, paymentMethod } = req.body;
-
-    if (!restaurant || !deliveryAddress || !phone) {
-      return res.status(400).json({ message: 'Missing checkout fields' });
-    }
-
-    const cart = await Cart.findOne({ user: req.user._id });
-    if (!cart || cart.items.length === 0) {
-      return res.status(400).json({ message: 'Cart is empty' });
-    }
-
-    // build order items from cart
-
-    let totalPrice = 0;
-
-    const orderItems = cart.items.map(item => {
-      totalPrice += item.price * item.quantity;
-      return {
-        product: item.product,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity
-      };
-    });
-
-    // create order
-    const order = await Order.create({
-      user: req.user._id,
-      restaurant, 
-      items: orderItems,
-      totalPrice,
-      paymentMethod: paymentMethod || 'cod',
-      paymentStatus: paymentMethod === 'card' ? 'paid' : 'pending',
-      deliveryAddress,
-      phone
-    });
-
-   // clear cart
-   cart.items = [];
-   await cart.save();
-
-   res.status(201).json(order);
   } catch (err) {
     next(err);
   }
