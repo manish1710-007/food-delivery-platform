@@ -24,6 +24,16 @@ export default function Cart() {
     fetchCart();
   }, []);
 
+  const checkout = async () => {
+    try {
+      await api.post("/orders/checkout");
+      alert("Order placed!");
+      navigate("/orders"); // or order success page
+    } catch (err) {
+      alert(err.response?.data?.message || "Checkout failed");
+    }
+  };
+
   const removeItem = async (id) => {
     try {
       await api.delete(`/orders/cart/${id}`);
@@ -92,7 +102,7 @@ export default function Cart() {
             <h4>Total: ₹{totalPrice}</h4>
             <button
               className="btn btn-success"
-              onClick={() => navigate("/checkout")}
+              onClick={checkout}
             >
               Proceed to Checkout
             </button>

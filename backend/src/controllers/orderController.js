@@ -37,50 +37,69 @@ const buildOrderItems = async (items) => {
 
 
 //checkout from cart
-const checkoutFromCart = async (req, res, next) => {
+exports.checkoutFromCart = async (req, res, next) => {
   try {
     const { restaurant, deliveryAddress, phone, paymentMethod } = req.body;
 
     if (!restaurant || !deliveryAddress || !phone) {
-      return res.status(400).json({ message: 'Missing checkout fields' });
+      return res.status(400).json({
+        message: "restaurant, deliveryAddress and phone are required"
+      });
     }
 
-    const cart = await Cart.findOne({ user: req.user._id });
+    if (!mongoose.Types.ObjectId.isValid(restaurant)) {
+      return res.status(400).json({ message: "Invalid restaurant id" });
+    }
+
+    const cart = await Cart.findOne({ user: req.user._id })
+      .populate("items.product", "name price");
+
     if (!cart || cart.items.length === 0) {
-      return res.status(400).json({ message: 'Cart is empty' });
+      return res.status(400).json({ message: "Cart is empty" });
     }
-
-    // build order items from cart
 
     let totalPrice = 0;
 
     const orderItems = cart.items.map(item => {
-      totalPrice += item.price * item.quantity;
+      const lineTotal = item.product.price * item.quantity;
+      totalPrice += lineTotal;
+
       return {
-        product: item.product,
-        name: item.name,
-        price: item.price,
+        product: item.product._id,
+        name: item.product.name,
+        price: item.product.price,
         quantity: item.quantity
       };
     });
 
-    // create order
     const order = await Order.create({
       user: req.user._id,
-      restaurant, 
+      restaurant,
       items: orderItems,
       totalPrice,
-      paymentMethod: paymentMethod || 'cod',
-      paymentStatus: paymentMethod === 'card' ? 'paid' : 'pending',
+      paymentMethod: paymentMethod || "cod",
+      paymentStatus: paymentMethod === "card" ? "paid" : "pending",
       deliveryAddress,
       phone
     });
 
-   // clear cart
-   cart.items = [];
-   await cart.save();
+    // Clear cart after successful checkout
+    cart.items = [];
+    await cart.save();
 
-   res.status(201).json(order);
+    return res.status(201).json({
+      message: "Order placed successfully",
+      order: {
+        _id: order._id,
+        items: order.items.map(i => ({
+          name: i.name,
+          price: i.price,
+          quantity: i.quantity
+        })),
+        totalAmount: order.totalPrice,
+        status: order.status
+      }
+    });
   } catch (err) {
     next(err);
   }
@@ -240,6 +259,5 @@ module.exports = {
   getOrderById,
   listOrders,
   updateOrderStatus,
-  markPaid,
-  checkoutFromCart
+  markPaid
 };
