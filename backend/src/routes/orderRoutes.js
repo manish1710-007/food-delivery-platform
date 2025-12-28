@@ -12,6 +12,7 @@ router.delete('/cart/:itemId', authMiddleware, removeFromCart);
 
 console.log('orderRoutes loaded');
 
+
 // User creates order & views own orders
 router.post('/', authMiddleware, orderCtrl.createOrder);
 router.get('/my', authMiddleware, orderCtrl.getMyOrders);

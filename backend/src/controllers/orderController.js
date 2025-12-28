@@ -37,25 +37,19 @@ const buildOrderItems = async (items) => {
 
 
 //checkout from cart
-exports.checkoutFromCart = async (req, res, next) => {
+const checkoutFromCart = async (req, res, next) => {
   try {
     const { restaurant, deliveryAddress, phone, paymentMethod } = req.body;
 
     if (!restaurant || !deliveryAddress || !phone) {
-      return res.status(400).json({
-        message: "restaurant, deliveryAddress and phone are required"
-      });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(restaurant)) {
-      return res.status(400).json({ message: "Invalid restaurant id" });
+      return res.status(400).json({ message: 'Missing checkout fields' });
     }
 
     const cart = await Cart.findOne({ user: req.user._id })
-      .populate("items.product", "name price");
+      .populate('items.product', 'name price');
 
     if (!cart || cart.items.length === 0) {
-      return res.status(400).json({ message: "Cart is empty" });
+      return res.status(400).json({ message: 'Cart is empty' });
     }
 
     let totalPrice = 0;
@@ -77,34 +71,24 @@ exports.checkoutFromCart = async (req, res, next) => {
       restaurant,
       items: orderItems,
       totalPrice,
-      paymentMethod: paymentMethod || "cod",
-      paymentStatus: paymentMethod === "card" ? "paid" : "pending",
+      paymentMethod: paymentMethod || 'cod',
+      paymentStatus: paymentMethod === 'card' ? 'paid' : 'pending',
       deliveryAddress,
       phone
     });
 
-    // Clear cart after successful checkout
+    // Clear cart
     cart.items = [];
     await cart.save();
 
     return res.status(201).json({
-      message: "Order placed successfully",
-      order: {
-        _id: order._id,
-        items: order.items.map(i => ({
-          name: i.name,
-          price: i.price,
-          quantity: i.quantity
-        })),
-        totalAmount: order.totalPrice,
-        status: order.status
-      }
+      message: 'Order placed successfully',
+      order
     });
   } catch (err) {
     next(err);
   }
 };
-
 
 const createOrder = async (req, res, next) => {
   try {
@@ -259,5 +243,6 @@ module.exports = {
   getOrderById,
   listOrders,
   updateOrderStatus,
-  markPaid
+  markPaid,
+  checkoutFromCart
 };
