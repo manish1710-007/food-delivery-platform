@@ -4,9 +4,12 @@ module.exports = (io) => {
   setIo(io);
 
   io.on('connection', socket => {
+    socket.on("JoinRestaurant", () => {
+      socket.join("restaurant");
+    });
     console.log('socket connected', socket.id);
 
-    socket.on('join', (orderId) => {
+    socket.on("JoinOrder", (orderId) => {
       socket.join(orderId);
       console.log(`Joined order room: ${orderId}`);
     });

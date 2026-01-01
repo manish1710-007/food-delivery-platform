@@ -1,7 +1,7 @@
 import { Navigate, useLocation, Outlet } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 
-export default function ProtectedRoute({ children }) {
+export default function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
   const location = useLocation();
 
@@ -18,6 +18,10 @@ export default function ProtectedRoute({ children }) {
         state={{ from: location }}
       />
     );
+  }
+
+  if (roles && !roles.includes(user.role)) {
+    return <Navigate to="/" replace />;
   }
 
   // Support two usage patterns:
