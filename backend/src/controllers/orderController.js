@@ -208,6 +208,12 @@ const updateOrderStatus = async (req, res, next) => {
     order.status = status;
     await order.save();
 
+    // real-time emit via socket.io
+    req.app.get("io").to(order._id.toString()).emit("orderUpdated", {
+      orderId: order._id,
+      status: order.status
+    });
+
     return res.json(order);
   } catch (err) {
     next(err);

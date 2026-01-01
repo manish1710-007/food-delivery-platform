@@ -6,13 +6,13 @@ module.exports = (io) => {
   io.on('connection', socket => {
     console.log('socket connected', socket.id);
 
-    socket.on('join', (room) => {
-      socket.join(room);
-      console.log(`Socket ${socket.id} joined ${room}`);
+    socket.on('join', (orderId) => {
+      socket.join(orderId);
+      console.log(`Joined order room: ${orderId}`);
     });
 
-    socket.on('leave', (room) => {
-      socket.leave(room);
+    socket.on('leave', (orderId) => {
+      socket.leave(orderId);
     });
 
     socket.on('disconnect', () => {

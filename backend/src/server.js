@@ -66,6 +66,7 @@ const io = new Server(server, {
 });
 
 orderSocket(io);
+app.set("io", io);
 
 const PORT = process.env.PORT || 5000;
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import socket from "../sockets/socket";
 import api from "../api/axios";
 
 export default function OrderSuccess() {
@@ -9,6 +10,7 @@ export default function OrderSuccess() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Fetch order once
   useEffect(() => {
     const fetchOrder = async () => {
       try {
@@ -26,33 +28,41 @@ export default function OrderSuccess() {
     fetchOrder();
   }, [id, navigate]);
 
-  if (loading) {
-    return <div className="m-4">Loading order...</div>;
-  }
+  // Socket live updates
+  useEffect(() => {
+    if (!socket.connected) socket.connect();
 
-  if (!order) {
-    return <div className="m-4">Order not found</div>;
-  }
+    socket.emit("JoinOrder", id);
+
+    socket.on("OrderUpdated", (data) => {
+      if (data.orderId === id) {
+        setOrder((prev) => ({ ...prev, status: data.status }));
+      }
+    });
+
+    return () => {
+      socket.off("OrderUpdated");
+      socket.disconnect();
+    };
+  }, [id]);
+
+  if (loading) return <div className="m-4">Loading order...</div>;
+  if (!order) return <div className="m-4">Order not found</div>;
 
   return (
     <div className="container mt-4">
       <h2 className="text-success">🎉 Order Placed Successfully!</h2>
 
-      <p className="mt-2">
-        <strong>Order ID:</strong> {order._id}
-      </p>
+      <p><strong>Order ID:</strong> {order._id}</p>
 
       <p>
         <strong>Status:</strong>{" "}
-        <span className="badge bg-warning text-dark">
-          {order.status}
-        </span>
+        <span className="badge bg-warning text-dark">{order.status}</span>
       </p>
 
       <hr />
 
       <h4>Order Summary</h4>
-
       <table className="table mt-3">
         <thead>
           <tr>
@@ -62,8 +72,8 @@ export default function OrderSuccess() {
           </tr>
         </thead>
         <tbody>
-          {order.items.map((item, idx) => (
-            <tr key={idx}>
+          {order.items.map((item, i) => (
+            <tr key={i}>
               <td>{item.name}</td>
               <td>{item.quantity}</td>
               <td>₹{item.price * item.quantity}</td>
@@ -76,24 +86,16 @@ export default function OrderSuccess() {
 
       <hr />
 
-      <p>
-        <strong>Delivery Address:</strong> {order.deliveryAddress}
-      </p>
-
+      <p><strong>Delivery Address:</strong> {order.deliveryAddress}</p>
       <p>
         <strong>Payment:</strong>{" "}
-        {order.paymentMethod.toUpperCase()} (
-        {order.paymentStatus})
+        {order.paymentMethod.toUpperCase()} ({order.paymentStatus})
       </p>
 
       <div className="mt-4">
-        <button
-          className="btn btn-primary me-2"
-          onClick={() => navigate("/")}
-        >
+        <button className="btn btn-primary me-2" onClick={() => navigate("/")}>
           Back to Home
         </button>
-
         <button
           className="btn btn-outline-secondary"
           onClick={() => navigate("/orders/my")}
