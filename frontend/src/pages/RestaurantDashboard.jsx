@@ -74,7 +74,7 @@ export default function RestaurantDashboard() {
 
             <p>Total: ₹{order.totalPrice}</p>
 
-            <div className="d-flex gap-2">
+            <div className="mt-3 d-flex gap-2">
               <button
                 className="btn btn-success btn-sm"
                 onClick={() => updateStatus(order._id, "accepted")}
@@ -102,6 +102,8 @@ export default function RestaurantDashboard() {
               >
                 Delivered
               </button>
+
+              <button disabled={order.status !== 'pending'}>Accept</button>
             </div>
           </div>
         </div>

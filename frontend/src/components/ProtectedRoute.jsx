@@ -20,7 +20,7 @@ export default function ProtectedRoute({ children, roles }) {
     );
   }
 
-  if (roles && !roles.includes(user.role)) {
+  if (roles && !roles.includes(user.role.toLowerCase())) {
     return <Navigate to="/" replace />;
   }
 

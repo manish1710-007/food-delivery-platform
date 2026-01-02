@@ -24,10 +24,10 @@ router.get('/:id', authMiddleware, orderCtrl.getOrderById);
 router.post('/checkout', authMiddleware, orderCtrl.checkoutFromCart);
 
 // Admin/restaurant views all orders
-router.get('/', authMiddleware, permit('admin', 'Restaurant'), orderCtrl.listOrders);
+router.get('/', authMiddleware, permit('admin', 'restaurant'), orderCtrl.listOrders);
 
 // Update order status (admin/restaurant)
-router.patch('/:id/status', authMiddleware, permit('admin', 'Restaurant'), orderCtrl.updateOrderStatus);
+router.patch('/:id/status', authMiddleware, permit('admin', 'restaurant'), orderCtrl.updateOrderStatus);
 
 // Mark order as paid (user or admin)
 router.patch('/:id/mark-paid', authMiddleware, orderCtrl.markPaid);

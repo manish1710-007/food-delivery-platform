@@ -10,7 +10,7 @@ export default function Register() {
     name: "",
     email: "",
     password: "",
-    role: "customer" // default
+    role: "Restaurant" // default
   });
 
   const [error, setError] = useState(null);

@@ -37,7 +37,7 @@ function App() {
           </Route>
 
           {/* Restaurant protected */}
-          <Route element={<ProtectedRoute roles={["Restaurant"]} />}>
+          <Route element={<ProtectedRoute roles={["restaurant"]} />}>
             <Route
               path="/restaurant/dashboard"
               element={<RestaurantDashboard />}

@@ -30,7 +30,7 @@ const register = async (req, res) => {
       name,
       email,
       password,
-      role: role || 'customer'
+      role: role || 'Restaurant'
     });
 
     const token = generateToken(user._id);
