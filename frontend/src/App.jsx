@@ -12,6 +12,7 @@ import Restaurant from "./pages/Restaurant";
 
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import AdminDashboard from "./pages/AdminDashboard";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
