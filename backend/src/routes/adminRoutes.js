@@ -1,13 +1,20 @@
 const router = require('express').Router();
-const { register, login, refresh, logout } = require('../controllers/authController');
+const { authMiddleware, permit } = require("../middlewares/authMiddleware");
+const adminCtrl = require("../controllers/adminController");
 
-// Basic register/login (legacy)
-router.post('/register', register);
-router.post('/login', login);
 
-// Advanced auth endpoints (access + refresh tokens)
-router.post('/advanced/login', login);
-router.post('/refresh', refresh);
-router.post('/logout', logout);
+//Admin Analytics
+router.get(
+    "/analytics",
+    authMiddleware,
+    permit("admin"),
+    adminCtrl.getAnalytics
+);
+//Manage Users
+
+router.get("/stats", authMiddleware, permit("admin"), adminCtrl.stats);
+router.get("/users", authMiddleware, permit("admin"), adminCtrl.listUsers);
+router.get("/restaurants", authMiddleware, permit("admin"), adminCtrl.listRestaurants);
+router.get("/orders", authMiddleware, permit("admin"), adminCtrl.listOrders);
 
 module.exports = router;

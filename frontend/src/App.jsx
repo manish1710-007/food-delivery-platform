@@ -43,6 +43,9 @@ function App() {
               element={<RestaurantDashboard />}
             />
           </Route>
+          <Route element={<ProtectedRoute roles={["admin"]} />}>
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          </Route>
 
           {/* Fallback */}
           <Route path="*" element={<Home />} />

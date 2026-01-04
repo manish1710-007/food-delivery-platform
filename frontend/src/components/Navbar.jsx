@@ -17,26 +17,28 @@ export default function Navbar() {
       </Link>
 
       <div className="ms-auto d-flex gap-3 align-items-center">
+        {user && user.role === "admin" && (
+          <Link
+            to="/admin/dashboard"
+            className="btn btn-outline-dark btn-sm"
+          >
+            Admin
+          </Link>
+        )}
+
         {user ? (
           <>
             <span className="fw-semibold">
               Hi, {user.name || user.email}
             </span>
 
-            {/* Cart Button WITH badge positioned correctly */}
             <div className="position-relative">
               <Link className="btn btn-outline-primary btn-sm" to="/cart">
                 Cart
               </Link>
 
               {cartCount > 0 && (
-                <span
-                  className="
-                    position-absolute 
-                    top-0 start-100 translate-middle 
-                    badge rounded-pill bg-danger
-                  "
-                >
+                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                   {cartCount}
                 </span>
               )}
