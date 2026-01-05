@@ -1,4 +1,33 @@
+const { Parser } = require("json2csv");
 const Order = require("../models/Order");
+
+
+const exportAnalyticsToCSV = async (req, res) => {
+  try {
+    const orders = await Order.find().populate("user", "name email").populate("restaurant", "name").lean();
+
+    const csvData = orders.map((o) => ({
+      OrderID: o._id,
+      UserName: o.user.name || "N/A",
+      email: o.user?.email || "N/A",
+      restaurant: o.restaurant?.name || "N/A",
+      total: o.totalPrice,
+      paymentStatus: o.paymentStatus,
+      status: o.status,
+      createdAt: o.createdAt,
+    }));
+
+    const parser = new Parser();
+    const csv = parser.parse(csvData);
+
+    res.header("Content-Type", "text/csv");
+    res.attachment("analytics.csv");
+    return res.send(csv);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "CSV export failed"})
+  }
+};  
 
 const getAnalytics = async (req, res) => {
   try {
@@ -66,10 +95,29 @@ const stats = async (req, res) => {
   res.json({ message: "Admin stats placeholder" });
 };
 
+const updateUserRole = async (req, res) => {
+  const { role } = req.body;
+  const allowed = ["user", "restaurant", "admin"];
+
+  if (!allowed.includes(role)) {
+    return res.status(400).json({ message: "Invalid role" });
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.params.id,
+    { role },
+    { new: true },
+  ).select("-password");
+
+  res.json(user);
+};
+
 module.exports = {
   getAnalytics,
   stats,
   listUsers,
   listRestaurants,
-  listOrders
+  listOrders,
+  exportAnalyticsToCSV,
+  updateUserRole
 };

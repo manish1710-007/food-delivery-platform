@@ -1,6 +1,17 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 
+import {
+  BarCharts,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+} from "recharts";
+
 export default function AdminDashboard() {
   const [data, setData] = useState(null);
 
@@ -11,6 +22,34 @@ export default function AdminDashboard() {
   }, []);
 
   if (!data) return <p className="m-4">Loading analytics...</p>;
+
+  const restaurantRevenueData = data.topRestaurants.map((r) => ({
+    name: r.restaurant?.name || "Unknown",
+    revenue: r.revenue,
+  }));  
+
+  const orderTrend = data.ordersOverTime.map((o, index) => ({
+    order: index + 1,
+    total: o.totalPrice,
+  }));
+
+  const handleDownloadCSV = async () => {
+    try {
+      const res = await api.get("/admin/analytics/export", {
+        responseType: "blob",
+      });
+
+      const url = window.URL.createdObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "analytics.csv");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      alert("CSV download failed", err);
+    }
+  };
 
   return (
     <div className="container mt-4">
@@ -40,6 +79,54 @@ export default function AdminDashboard() {
         ))}
       </ul>
 
+      {/* Orders Over Time Chart */}
+      <div className="card mb-4">
+        <div className="card-body">
+          <h5>Orders by Status</h5>
+
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={data.orderByStatus}>
+              <XAsis datakey="_id" />
+              <yAxis />
+              <Tooltip />
+              <Bar datakey="count" fill="#0d6efd" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+      
+      {/* Revenue Over Time Chart */}
+      <div className="card mb-4">
+        <div className="card-body">
+          <h5>Top Restaurants Revenue</h5>
+
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={restaurantRevenueData}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="revenue" fill="#198754" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Order Trends Line Chart */}
+      <div className ="card mb-4">
+        <div className="card-body">
+          <h5>Order Trends Over Time</h5>
+
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={orderTrend}>
+              <XAxis dataKey="order" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" datakey="total" stroke="#dc3545" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
       {/* Recent Orders */}
       <h4 className="mt-4">Recent Orders</h4>
       <table className="table">
@@ -64,6 +151,13 @@ export default function AdminDashboard() {
           ))}
         </tbody>
       </table>
+
+      <button
+        className="btn btn-outline-success mb-3"
+        onClick={handleDownloadCSV}
+      >
+        Download Analytics CSV
+      </button>
     </div>
   );
 }
