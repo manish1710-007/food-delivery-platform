@@ -1,12 +1,16 @@
 const mongoose = require('mongoose');
 
-const restaurantchema = new mongoose.Schema({
+const restaurantSchema = new mongoose.Schema({
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
   name: { type: String, required: true },
   address: { type: String },
   phone: { type: String },
   image: { type: String },
   cuisine: { type: [String], default: [] },
+  status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
+  approvedAt: Date,
+  approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+
   location: {
     type: {
       type: String,
@@ -15,15 +19,13 @@ const restaurantchema = new mongoose.Schema({
     },
     coordinates: {
       type: [Number],
-    
       default: [0, 0] // [longitude, latitude]
     }
   },
-  isOpen: { type: Boolean, default: true },
-  createdAt: { type: Date, default: Date.now }
-});
+  isOpen: { type: Boolean, default: true }
+}, { timestamps: true });
 
 // 2dsphere index for geo queries (like finding nearby restaurant)
-restaurantchema.index({ location: '2dsphere' });
+restaurantSchema.index({ location: '2dsphere' });
 
-module.exports = mongoose.model('Restaurant', restaurantchema);
+module.exports = mongoose.model('Restaurant', restaurantSchema);

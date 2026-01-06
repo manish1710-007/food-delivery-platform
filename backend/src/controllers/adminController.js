@@ -1,6 +1,38 @@
 const { Parser } = require("json2csv");
 const Order = require("../models/Order");
+const Restaurant = require("../models/Restaurant");
 
+
+// List pending restaurants
+const getPendingRestaurants = async (req, res) => {
+  const restaurants = await Restaurant.find({ status: "pending" }).populate("owner", "name email");
+  res.json(restaurants);
+};
+
+// Approve / Reject restaurant
+ const updateRestaurantStatus = async (req, res) => {
+  const { status } = req.body;
+
+  if (!["approved", "rejected"].includes(status)) {
+    return res.status(400).json({ message: "Invalid status" });
+  }
+
+  const restaurant = await Restaurant.findById(req.params.id);
+  if (!restaurant) {
+    return res.status(404).json({ message: "Restaurant not found" });
+  }
+
+  restaurant.status = status;
+  restaurant.approvedAt = new Date();
+  restaurant.approvedBy = req.user._id;
+
+  await restaurant.save();
+
+  res.json({ 
+    message: 'Restaurant ${status}',
+    restaurant
+  });
+};
 
 const exportAnalyticsToCSV = async (req, res) => {
   try {
@@ -119,5 +151,7 @@ module.exports = {
   listRestaurants,
   listOrders,
   exportAnalyticsToCSV,
-  updateUserRole
+  updateUserRole,
+  getPendingRestaurants,
+  updateRestaurantStatus
 };

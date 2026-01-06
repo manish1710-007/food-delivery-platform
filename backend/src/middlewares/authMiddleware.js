@@ -10,6 +10,11 @@ const authMiddleware = async (req, res, next) => {
       return res.status(401).json({ message: 'No token provided' });
     }
 
+    // block unapproved restaurant owners from creating restaurants
+    if (req.user.role === "restaurant" && req.restaurant?.status !== "approved") {
+      return res.status(403).json({ message: "Restaurant not approved yet" });
+    }
+
     const token = authHeader.split(' ')[1];
     let decoded;
 

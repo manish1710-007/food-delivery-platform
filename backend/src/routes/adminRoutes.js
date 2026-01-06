@@ -18,5 +18,7 @@ router.get("/restaurants", authMiddleware, permit("admin"), adminCtrl.listRestau
 router.get("/orders", authMiddleware, permit("admin"), adminCtrl.listOrders);
 router.get("/analytics/export", authMiddleware, permit("admin"), adminCtrl.exportAnalyticsToCSV);
 router.patch("/users/:id/role", authMiddleware, permit("admin"), adminCtrl.updateUserRole);
+router.get("/restaurants/pending", authMiddleware, permit("admin"), adminCtrl.getPendingRestaurants);
+router.patch("/restaurants/:id/status", authMiddleware, permit("admin"), adminCtrl.updateRestaurantStatus);
 
 module.exports = router;

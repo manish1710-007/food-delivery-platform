@@ -8,7 +8,7 @@ const list = async (req, res, next) => {
     if (req.query.cuisine) q.cuisine = { $in: [req.query.cuisine] };
     if (req.query.q) q.name = { $regex: req.query.q, $options: 'i' };
 
-    const restaurant = await Restaurant.find(q).limit(200).lean();
+    const restaurant = await Restaurant.find({ status: "approved" });
     return res.json(restaurant);
   } catch (err) {
     next(err);
