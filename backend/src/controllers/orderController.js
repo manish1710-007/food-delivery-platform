@@ -92,18 +92,16 @@ const checkoutFromCart = async (req, res, next) => {
 
 const createOrder = async (req, res, next) => {
   try {
-    await Cart.findOneAndDelete({ user: req.user._id });
-    console.log('Create order request body:', req.body);
     const { restaurant, items, paymentMethod, deliveryAddress, phone } = req.body;
 
     if (!restaurant || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ message: 'restaurant and items are required' });
     }
+
     if (!deliveryAddress || !phone) {
       return res.status(400).json({ message: 'deliveryAddress and phone are required' });
     }
 
-    // basic ObjectId check
     if (!mongoose.Types.ObjectId.isValid(restaurant)) {
       return res.status(400).json({ message: 'Invalid restaurant id' });
     }
@@ -116,25 +114,18 @@ const createOrder = async (req, res, next) => {
       items: orderItems,
       totalPrice: total,
       paymentMethod: paymentMethod || 'cod',
-      paymentStatus: paymentMethod === 'card' ? 'paid' : 'pending', // fake payment for now
+      paymentStatus: paymentMethod === 'card' ? 'paid' : 'pending',
       deliveryAddress,
       phone
     });
 
-    return res.status(201).json(order);
-  } catch (err) {
-    console.error('Create order error:', err.message);
-    next(err);
-  }
-};
+    // delete cart ONLY after success
+    await Cart.findOneAndDelete({ user: req.user._id });
 
-const getMyOrders = async (req, res, next) => {
-  try {
-    const orders = await Order.find({ user: req.user._id })
-      .sort({ createdAt: -1 })
-      .lean();
-
-    return res.json(orders);
+    return res.status(201).json({
+      message: 'Order created successfully',
+      order
+    });
   } catch (err) {
     next(err);
   }
@@ -165,23 +156,34 @@ const getOrderById = async (req, res, next) => {
   }
 };
 
+const getMyOrders = async (req, res, next) => {
+  try {
+    const orders = await Order.find({ user: req.user._id })
+      .sort({ createdAt: -1 })
+      .populate('restaurant', 'name')
+      .lean();
+    return res.json(orders);
+  } catch (err) {
+    next(err);
+  }
+};
 
 const listOrders = async (req, res, next) => {
   try {
     const filter = {};
 
+    // Restaurant sees only its orders
     if (req.user.role === 'Restaurant') {
-      
-      if (req.query.restaurant && mongoose.Types.ObjectId.isValid(req.query.restaurant)) {
-        filter.restaurant = req.query.restaurant;
-      }
+      filter.restaurant = req.user.restaurant; // 👈 IMPORTANT
     }
 
     const orders = await Order.find(filter)
       .sort({ createdAt: -1 })
+      .populate("user", "name phone")
+      .populate("restaurant", "name")
       .lean();
 
-    return res.json(orders);
+    res.json(orders);
   } catch (err) {
     next(err);
   }
@@ -191,34 +193,59 @@ const listOrders = async (req, res, next) => {
 const updateOrderStatus = async (req, res, next) => {
   try {
     const { status } = req.body;
-    const allowedStatuses = ['pending', 'accepted', 'preparing', 'on_the_way', 'delivered', 'cancelled'];
+
+    const allowedStatuses = [
+      'accepted',
+      'preparing',
+      'on_the_way',
+      'delivered',
+      'cancelled'
+    ];
 
     if (!allowedStatuses.includes(status)) {
       return res.status(400).json({ message: 'Invalid status' });
     }
 
     const order = await Order.findById(req.params.id);
-    if (!order) return res.status(404).json({ message: 'Order not found' });
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
 
-    // only admin/restaurant can change status
-    if (req.user.role !== 'admin' && req.user.role !== 'Restaurant') {
+    // Admin OR restaurant owner
+    if (
+      req.user.role === 'Restaurant' &&
+      String(order.restaurant) !== String(req.user.restaurant)
+    ) {
       return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    if (['delivered', 'cancelled'].includes(order.status)) {
+      return res.status(400).json({
+        message: `Order already ${order.status}`
+      });
     }
 
     order.status = status;
     await order.save();
 
-    // real-time emit via socket.io
-    req.app.get("io").to(order._id.toString()).emit("orderUpdated", {
-      orderId: order._id,
-      status: order.status
-    });
+    // Emit socket event (non-blocking)
+    const io = req.app.get('io');
+    if (io) {
+      io.to(order._id.toString()).emit('orderUpdated', {
+        orderId: order._id,
+        status: order.status
+      });
+    }
 
-    return res.json(order);
+    return res.json({
+      message: 'Order status updated',
+      order
+    });
   } catch (err) {
     next(err);
   }
 };
+
 
 // marks order as paid 
 const markPaid = async (req, res, next) => {
