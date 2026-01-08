@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { authMiddleware, permit } = require("../middlewares/authMiddleware");
 const adminCtrl = require("../controllers/adminController");
-
+const upload = require("../middlewares/upload");
 router.use(authMiddleware, permit("admin"));
 
 // Restaurants
@@ -30,5 +30,5 @@ router.get("/analytics/export", authMiddleware, permit("admin"), adminCtrl.expor
 router.patch("/users/:id/role", authMiddleware, permit("admin"), adminCtrl.updateUserRole);
 router.get("/restaurants/pending", authMiddleware, permit("admin"), adminCtrl.getPendingRestaurants);
 router.patch("/restaurants/:id/status", authMiddleware, permit("admin"), adminCtrl.updateRestaurantStatus);
-
+router.post("/products", upload.single("image"), adminCtrl.createProductWithImage);
 module.exports = router;

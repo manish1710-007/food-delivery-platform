@@ -31,6 +31,15 @@ export default function ProductCard({ product }) {
   return (
     <div className="card h-100">
       <div className="card-body">
+        {product.image &&(
+          <img
+            src={product.image}
+            alt={product.name}
+            className="img-fluid mb-2"
+            style={{ height: "150px", objectFit: "cover", width: "100%" }}
+          />  
+        )}
+        
         <h6>{product.name}</h6>
         <p>₹{product.price}</p>
 

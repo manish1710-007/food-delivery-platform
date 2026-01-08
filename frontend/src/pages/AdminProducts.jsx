@@ -14,10 +14,30 @@ export default function AdminProducts() {
   }, []);
 
   const submit = async () => {
-    await api.post("/admin/products", form);
-    alert("Product added");
-    setForm({ name: "", price: "", restaurant: "" });
+    try {
+      const formData = new FormData();
+
+      formData.append("name", form.name);
+      formData.append("price", form.price);
+      formData.append("restaurant", form.restaurant);
+      
+      if (form.image) {
+        formData.append("image", form.image);
+      }
+
+      await api.post("/admin/products", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      alert("Product added");
+      // Reset form
+      setForm({ name: "", price: "", restaurant: "", image: null });
+    } catch (error) {
+      console.error("Error adding product", error);
+      alert("Failed to add product");
+    }
   };
+
 
   return (
     <div className="container mt-4">
@@ -37,6 +57,14 @@ export default function AdminProducts() {
         value={form.price}
         onChange={(e) => setForm({ ...form, price: e.target.value })}
       />
+
+      <input
+        type="file"
+        className="form-control my-2"
+        onChange={(e) =>
+          setForm({ ...form, image: e.target.files[0] })
+        }
+      />  
 
       <select
         className="form-control my-2"

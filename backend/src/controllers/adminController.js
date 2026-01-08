@@ -213,6 +213,60 @@ const updateUserRole = async (req, res) => {
   res.json(user);
 };
 
+const createProductWithImage = async (req, res) => {
+  try{
+    const { name, price, restaurant, category } = req.body;
+
+    if (!name || !price || !restaurant) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
+
+    let imageUrl = "";
+
+    if (req.file) {
+      const uploadResult = await cloudinary.uploader.upload_stream(
+        { folder: "food-products" },
+        async (error, result) => {
+          if (error) {
+            return res.status(500).json({ message: "Image upload failed" });
+          }
+          imageUrl = result.secure_url;
+
+          const product = await Product.create({
+            name, 
+            price, 
+            restaurant,
+            category,
+            image: imageUrl
+          });
+
+          res.status(201).json({
+            message: "Product created with image",
+            product
+          });
+        }
+      );
+
+      uploadResult.end(req.file.buffer);
+    } else {
+      const product = await Product.create({
+        name,
+        price,
+        restaurant,
+        category
+      });
+
+      res.status(201).json({
+        message: "Product created (no image)",
+        product
+      });
+    }
+  } catch (err){
+    console.error(err);
+    res.status(500).json({ message: "Product creation failed "});
+  }
+};
+
 module.exports = {
   getAnalytics,
   stats,
@@ -227,5 +281,6 @@ module.exports = {
   getAllRestaurants,
   approveRestaurant,
   createProduct,
-  getAllProducts
+  getAllProducts,
+  createProductWithImage
 };

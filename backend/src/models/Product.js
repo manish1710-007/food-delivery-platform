@@ -10,7 +10,7 @@ const ProductSchema = new mongoose.Schema({
   price: { type: Number, required: [true, 'Price is required'], min: 0 },
 
   image: {
-    type: String,
+    type: String, // cloudinary URL
     default: ''
 
   },
