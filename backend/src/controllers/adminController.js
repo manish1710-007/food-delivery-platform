@@ -3,6 +3,75 @@ const Order = require("../models/Order");
 const Restaurant = require("../models/Restaurant");
 
 
+// Restaurants 
+
+const createRestaurant = async (req, res) => {
+  const { name, address } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ message: "Restaurant name required" });
+  }
+
+  const restaurant = await Restaurant.create({
+    name, 
+    address,
+    isApproved: false
+  });
+
+  res.status(201).json({
+    message: "Restaurant created, pending approval",
+  });
+};
+
+const getAllRestaurants = async (req, res) => {
+  const restaurants = (await Restaurant.find()).sort({ createdAt: -1 });
+  res.json(restaurants);
+};
+
+const approveRestaurant = async (req, res) => {
+  const restaurant = await Restaurant.findById(req.params.id);
+  if (!restaurant){
+    return res.status(404).json({ message: "Restaurant not found" });
+  }
+
+  restaurant.isApproved = true;
+  await restaurant.save();
+
+  res.json({
+    message: "Restaurant approved",
+    restaurant
+  });
+};
+
+// Products
+
+const createProduct = async (req, res) => {
+  const { restaurant, name, price, category } = req.body;
+
+  if (!restaurant || !name || price == null) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  const product = await Product.create({
+    restaurant, 
+    name, 
+    price,
+    category  
+  });
+
+  res.status(201).json({
+    message: "Product added",
+    product  
+  });
+};
+
+const getAllProducts = async (req, res) => {
+  const product = await Product.find().populate("restaurant", "name").sort({ createdAt: -1 });
+
+  res.json(products);
+
+};
+
 // List pending restaurants
 const getPendingRestaurants = async (req, res) => {
   const restaurants = await Restaurant.find({ status: "pending" }).populate("owner", "name email");
@@ -153,5 +222,10 @@ module.exports = {
   exportAnalyticsToCSV,
   updateUserRole,
   getPendingRestaurants,
-  updateRestaurantStatus
+  updateRestaurantStatus,
+  createRestaurant,
+  getAllRestaurants,
+  approveRestaurant,
+  createProduct,
+  getAllProducts
 };

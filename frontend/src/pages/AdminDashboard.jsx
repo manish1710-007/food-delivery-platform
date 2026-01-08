@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom"; // Imported Link
 import api from "../api/axios";
 
 import {
-  BarCharts,
+  BarChart,
   Bar,
   XAxis,
   YAxis,
@@ -12,14 +13,12 @@ import {
   Line,
 } from "recharts";
 
-
-
 export default function AdminDashboard() {
   const [data, setData] = useState(null);
 
   useEffect(() => {
     api.get("/admin/analytics")
-      .then(res => setData(res.data))
+      .then((res) => setData(res.data))
       .catch(() => alert("Admin access only"));
   }, []);
 
@@ -28,7 +27,7 @@ export default function AdminDashboard() {
   const restaurantRevenueData = data.topRestaurants.map((r) => ({
     name: r.restaurant?.name || "Unknown",
     revenue: r.revenue,
-  }));  
+  }));
 
   const orderTrend = data.ordersOverTime.map((o, index) => ({
     order: index + 1,
@@ -41,7 +40,8 @@ export default function AdminDashboard() {
         responseType: "blob",
       });
 
-      const url = window.URL.createdObjectURL(new Blob([res.data]));
+      
+      const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement("a");
       link.href = url;
       link.setAttribute("download", "analytics.csv");
@@ -53,11 +53,24 @@ export default function AdminDashboard() {
     }
   };
 
-
-
   return (
     <div className="container mt-4">
-      <h2>📊 Admin Analytics</h2>
+      <h2>🛠 Admin Dashboard & Analytics</h2>
+
+      {/* Navigation Links */}
+      <div className="row my-4">
+        <div className="col-md-6">
+          <div className="list-group">
+            <Link className="list-group-item list-group-item-action" to="/admin/restaurants">
+              🏪 Manage Restaurants
+            </Link>
+            <Link className="list-group-item list-group-item-action" to="/admin/products">
+              🍔 Manage Food Items
+            </Link>
+          </div>
+        </div>
+      </div>
+      
 
       {/* KPI Cards */}
       <div className="row my-4">
@@ -65,45 +78,45 @@ export default function AdminDashboard() {
         <Kpi title="Revenue" value={`₹${data.totalRevenue}`} />
       </div>
 
-      {/* Orders by Status */}
+      {/* Orders by Status List */}
       <h4>Orders by Status</h4>
       <ul>
-        {data.ordersByStatus.map(s => (
-          <li key={s._id}>{s._id}: {s.count}</li>
+        {data.ordersByStatus.map((s) => (
+          <li key={s._id}>
+            {s._id}: {s.count}
+          </li>
         ))}
       </ul>
 
-      {/* Top Restaurants */}
+      {/* Top Restaurants List */}
       <h4 className="mt-4">Top Restaurants</h4>
       <ul>
-        {data.topRestaurants.map(r => (
+        {data.topRestaurants.map((r) => (
           <li key={r._id}>
             {r.restaurant.name} — ₹{r.revenue}
           </li>
         ))}
       </ul>
 
-      {/* Orders Over Time Chart */}
+      {/* Orders by Status Chart */}
       <div className="card mb-4">
         <div className="card-body">
-          <h5>Orders by Status</h5>
-
+          <h5>Orders by Status Chart</h5>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data.orderByStatus}>
-              <XAsis datakey="_id" />
-              <yAxis />
+            <BarChart data={data.ordersByStatus}>
+              <XAxis dataKey="_id" />
+              <YAxis />
               <Tooltip />
-              <Bar datakey="count" fill="#0d6efd" />
+              <Bar dataKey="count" fill="#0d6efd" />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
-      
+
       {/* Revenue Over Time Chart */}
       <div className="card mb-4">
         <div className="card-body">
           <h5>Top Restaurants Revenue</h5>
-
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={restaurantRevenueData}>
               <XAxis dataKey="name" />
@@ -116,22 +129,21 @@ export default function AdminDashboard() {
       </div>
 
       {/* Order Trends Line Chart */}
-      <div className ="card mb-4">
+      <div className="card mb-4">
         <div className="card-body">
           <h5>Order Trends Over Time</h5>
-
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={orderTrend}>
               <XAxis dataKey="order" />
               <YAxis />
               <Tooltip />
-              <Line type="monotone" datakey="total" stroke="#dc3545" />
+              <Line type="monotone" dataKey="total" stroke="#dc3545" />
             </LineChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Recent Orders */}
+      {/* Recent Orders Table */}
       <h4 className="mt-4">Recent Orders</h4>
       <table className="table">
         <thead>
@@ -144,7 +156,7 @@ export default function AdminDashboard() {
           </tr>
         </thead>
         <tbody>
-          {data.recentOrders.map(o => (
+          {data.recentOrders.map((o) => (
             <tr key={o._id}>
               <td>{o._id.slice(-6)}</td>
               <td>{o.user?.name}</td>
@@ -166,6 +178,7 @@ export default function AdminDashboard() {
   );
 }
 
+// KPI Component
 function Kpi({ title, value }) {
   return (
     <div className="col-md-3">

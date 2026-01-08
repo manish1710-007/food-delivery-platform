@@ -2,6 +2,16 @@ const router = require('express').Router();
 const { authMiddleware, permit } = require("../middlewares/authMiddleware");
 const adminCtrl = require("../controllers/adminController");
 
+router.use(authMiddleware, permit("admin"));
+
+// Restaurants
+router.post("/restaurants", adminCtrl.createRestaurant);
+router.get("/restaurants", adminCtrl.getAllRestaurants);
+router.patch("/restaurants/:id/approve", adminCtrl.approveRestaurant);
+
+// Products
+router.post("/products", adminCtrl.createProduct);
+router.get("/products", adminCtrl.getAllProducts);
 
 //Admin Analytics
 router.get(
