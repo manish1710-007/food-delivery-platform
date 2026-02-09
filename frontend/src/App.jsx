@@ -17,6 +17,11 @@ import AdminUsers from "./pages/AdminUsers";
 import AdminRestaurants from "./pages/AdminRestaurants";
 import AdminOrders from "./pages/AdminOrders";
 import AdminProducts from "./pages/AdminProducts";
+import RestaurantLayout from "./pages/RestaurantLayout";
+import RestaurantOrders from "./pages/RestaurantOrders";
+import RestaurantProfile from "./pages/RestaurantProfile";
+import RestaurantMenu from "./pages/RestaurantMenu";
+import RestaurantMenuForm from "./pages/RestaurantMenuForm";
 
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
@@ -50,6 +55,14 @@ function App() {
             <Route path="/admin/restaurants" element={<AdminRestaurants />} />
             <Route path="/admin/orders" element={<AdminOrders />} />
             <Route path="/admin/products" element={<AdminProducts />} />
+          </Route>
+
+          {/* Restaurant owner Dasboard */}
+          <Route path="/restaurant-owner/*" element={<RestaurantLayout />}>
+            <Route path="dashboard" element={<RestaurantOrders />} />
+            <Route path="profile" element={<RestaurantProfile />} />
+            <Route path="menu" element={<RestaurantMenu />} />
+            <Route path="menu/add" element={<RestaurantMenuForm />} />
           </Route>
 
           <Route path="*" element={<Home />} />
