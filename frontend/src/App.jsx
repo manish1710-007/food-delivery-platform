@@ -13,6 +13,10 @@ import MyOrders from "./pages/MyOrders";
 import Restaurant from "./pages/Restaurant";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminUsers from "./pages/AdminUsers";
+import AdminRestaurants from "./pages/AdminRestaurants";
+import AdminOrders from "./pages/AdminOrders";
+import AdminProducts from "./pages/AdminProducts";
 
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";

@@ -42,6 +42,7 @@ app.use("/api/restaurants", restaurantRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/restaurant-owner", require("./routes/restaurantOwnerRoutes"));
 
 app.get("/api/health", (req, res) =>
   res.json({ ok: true, ts: Date.now() })
