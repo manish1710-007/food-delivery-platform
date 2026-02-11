@@ -41,6 +41,7 @@ export default function RestaurantOrders() {
 
   return (
     <div className="container mt-4">
+      <h3>Restaurant Orders Page</h3>
       <h2>Incoming Orders</h2>
 
       {orders.map((order) => (

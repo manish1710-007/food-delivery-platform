@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./auth/useAuth";
 
+
+
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
@@ -17,6 +19,8 @@ import AdminUsers from "./pages/AdminUsers";
 import AdminRestaurants from "./pages/AdminRestaurants";
 import AdminOrders from "./pages/AdminOrders";
 import AdminProducts from "./pages/AdminProducts";
+import RestaurantPanel from "./pages/RestaurantPanel";
+
 import RestaurantLayout from "./pages/RestaurantLayout";
 import RestaurantOrders from "./pages/RestaurantOrders";
 import RestaurantProfile from "./pages/RestaurantProfile";
@@ -58,6 +62,9 @@ function App() {
           </Route>
 
           {/* Restaurant owner Dasboard */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/restaurant/panel/*" element={<RestaurantPanel />} />
+          </Route>
           <Route path="/restaurant-owner/*" element={<RestaurantLayout />}>
             <Route path="dashboard" element={<RestaurantOrders />} />
             <Route path="profile" element={<RestaurantProfile />} />

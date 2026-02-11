@@ -15,6 +15,7 @@ export default function RestaurantProfile() {
 
     return (
         <div>
+            <h3>Restaurant Profile Page</h3>
             <input
                 value={data.name || ""}
                 onChange={ e => setData({ ...data, description: e.target.value})}
@@ -28,6 +29,7 @@ export default function RestaurantProfile() {
 
             />
             <button className="btn btn-primary" onClick={save}>Save</button>
+            
         </div>
     );
 }

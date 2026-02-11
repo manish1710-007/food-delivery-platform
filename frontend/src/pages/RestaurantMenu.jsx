@@ -11,6 +11,7 @@ export default function RestaurantMenu() {
 
     return (
         <div> 
+            <h3>Restaurant Menu Management</h3>
             <Link to="add" className="btn-success mb-3">Add New Item</Link>
 
             {items.map(item => (
