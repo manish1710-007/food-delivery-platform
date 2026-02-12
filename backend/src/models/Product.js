@@ -11,12 +11,12 @@ const ProductSchema = new mongoose.Schema({
 
   image: {
     type: String, // cloudinary URL
-    default: ''
-
   },
+  
   category: {
     type: String,
-    default: 'General'
+    enum: ['Appetizer', 'Main Course', 'Dessert', 'Beverage', 'Pizza', 'Burger', 'Salad', 'Other'],
+    required: true
   },
 
   available: { type: Boolean, default: true },

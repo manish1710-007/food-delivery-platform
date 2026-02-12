@@ -1,8 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../api/axios";
 
-export default function RestaurantMenuForm() {
-  const [form, setForm] = useState({ name: "", price: "", image: "" });
+export default function RestaurantMenuForm({
+  fetchMenu,
+  editingItem,
+  setEditingItem
+}) {
+  const [form, setForm] = useState({
+    name: "",
+    price: "",
+    image: "",
+    category: "Burger"
+  });
+
+  useEffect(() => {
+    if (editingItem) {
+      setForm(editingItem);
+    }
+  }, [editingItem]);
 
   const uploadImage = async (e) => {
     const file = e.target.files[0];
@@ -11,33 +26,105 @@ export default function RestaurantMenuForm() {
     data.append("upload_preset", "fooddash");
 
     const res = await fetch(
-      "https://api.cloudinary.com/v1_1/YOUR_CLOUD/image/upload",
-      { method: "POST", body: data }
+      "https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload",
+      {
+        method: "POST",
+        body: data
+      }
     );
 
     const json = await res.json();
     setForm({ ...form, image: json.secure_url });
   };
 
-  const submit = async () => {
-    await api.post("/restaurant-owner/menu", form);
-    alert("Added!");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      if (editingItem) {
+        await api.put(`/restaurant/menu/${editingItem._id}`, form);
+      } else {
+        await api.post("/restaurant/menu", form);
+      }
+
+      setForm({ name: "", price: "", image: "" });
+      setEditingItem(null);
+      fetchMenu();
+    } catch (err) {
+      console.error(err);
+      alert("Save failed");
+    }
   };
 
   return (
-    <div>
-      <input
-        placeholder="Name"
-        onChange={e => setForm({ ...form, name: e.target.value })}
-        className="form-control mb-2"
-      />
-      <input
-        placeholder="Price"
-        onChange={e => setForm({ ...form, price: e.target.value })}
-        className="form-control mb-2"
-      />
-      <input type="file" onChange={uploadImage} />
-      <button className="btn btn-success mt-2" onClick={submit}>Save</button>
+    <div className="card shadow-sm mb-4">
+      <div className="card-body">
+        <h5>{editingItem ? "Edit Item" : "Add New Item"}</h5>
+
+        <form onSubmit={handleSubmit}>
+          <div className="row g-3">
+            <div className="col-md-4">
+              <input
+                type="text"
+                placeholder="Item name"
+                className="form-control"
+                value={form.name}
+                onChange={(e) =>
+                  setForm({ ...form, name: e.target.value })
+                }
+                required
+              />
+            </div>
+
+            <div className="col-md-3">
+              <input
+                type="number"
+                placeholder="Price"
+                className="form-control"
+                value={form.price}
+                onChange={(e) =>
+                  setForm({ ...form, price: e.target.value })
+                }
+                required
+              />
+            </div>
+
+            <div className="col-md-3">
+              <input
+                type="file"
+                className="form-control"
+                onChange={uploadImage}
+              />
+            </div>
+
+            <div className="col-md-3">
+              <select
+                className="form-select"
+                value={form.category}
+                onChange={(e) =>
+                  setForm({ ...form, category: e.target.value })
+                }
+                required
+                >
+                <option value="Appetizer">Appetizer</option>
+                <option value="Main Course">Main Course</option>
+                <option value="Dessert">Dessert</option>
+                <option value="Beverage">Beverage</option>
+                <option value="Pizza">Pizza</option>
+                <option value="Burger">Burger</option>
+                <option value="Salad">Salad</option>
+                <option value="Other">Other</option>  
+                </select>
+            </div>
+
+            <div className="col-md-2">
+              <button className="btn btn-primary w-100">
+                {editingItem ? "Update" : "Add"}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
