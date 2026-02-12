@@ -170,24 +170,71 @@ const getMyOrders = async (req, res, next) => {
 
 const listOrders = async (req, res, next) => {
   try {
+    const {
+      status,
+      paymentStatus,
+      from,
+      to,
+      search,
+      page = 1,
+      limit = 10
+    } = req.query;
+
     const filter = {};
 
-    // Restaurant sees only its orders
-    if (req.user.role === 'Restaurant') {
-      filter.restaurant = req.user.restaurant; // 👈 IMPORTANT
+    // Role restriction
+    if (req.user.role === "Restaurant") {
+      if (req.query.restaurant && mongoose.Types.ObjectId.isValid(req.query.restaurant)) {
+        filter.restaurant = req.query.restaurant;
+      }
     }
+
+    // Status filter
+    if (status) {
+      filter.status = status;
+    }
+
+    // Payment filter
+    if (paymentStatus) {
+      filter.paymentStatus = paymentStatus;
+    }
+
+    // Date range
+    if (from || to) {
+      filter.createdAt = {};
+      if (from) filter.createdAt.$gte = new Date(from);
+      if (to) filter.createdAt.$lte = new Date(to);
+    }
+
+    // Search by order ID
+    if (search && mongoose.Types.ObjectId.isValid(search)) {
+      filter._id = search;
+    }
+
+    const skip = (page - 1) * limit;
 
     const orders = await Order.find(filter)
       .sort({ createdAt: -1 })
-      .populate("user", "name phone")
+      .skip(skip)
+      .limit(Number(limit))
+      .populate("user", "name")
       .populate("restaurant", "name")
       .lean();
 
-    res.json(orders);
+    const total = await Order.countDocuments(filter);
+
+    res.json({
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      orders
+    });
+
   } catch (err) {
     next(err);
   }
 };
+
 
 
 const updateOrderStatus = async (req, res, next) => {
