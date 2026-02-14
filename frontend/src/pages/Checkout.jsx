@@ -13,6 +13,18 @@ export default function Checkout() {
 
   const navigate = useNavigate();
 
+  const handleStripeCheckout = async () => {
+    try {
+
+      const res = await api.post("/payment/create-checkout-session");
+
+      window.location.href = res.data.url;
+    } catch (err) {
+      console.error(err);
+      alert("Payment Failed");
+    }
+  };
+
   // Fetch cart
   useEffect(() => {
     const fetchCart = async () => {
@@ -121,6 +133,13 @@ export default function Checkout() {
         disabled={submitting}
       >
         {submitting ? "Placing Order..." : "Place Order"}
+
+      <button
+        className="btn btn-primary"
+        onClick={handleStripeCheckout}
+      >
+        Pay with Card
+      </button>    
       </button>
     </div>
   );

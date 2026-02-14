@@ -16,6 +16,7 @@ const restaurantRoutes = require("./routes/restaurantRoutes");
 const productRoutes = require("./routes/productRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const cartRoutes = require("./routes/cartRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/restaurant-owner", require("./routes/restaurantOwnerRoutes"));
+app.use("/api/payment", paymentRoutes);
 
 app.get("/api/health", (req, res) =>
   res.json({ ok: true, ts: Date.now() })
