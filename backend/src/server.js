@@ -33,6 +33,16 @@ app.use(
   })
 );
 
+app.post(
+  "/api/payments/webhook",
+  express.raw({ type: "application/json" }),
+  (req, res, next) => {
+    req.rawBody = req.body;
+    next();
+  },
+  require("./controllers/paymentController").handleWebhook  
+);
+
 
 
 

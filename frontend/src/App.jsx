@@ -14,11 +14,6 @@ import OrderSuccess from "./pages/OrderSuccess";
 import MyOrders from "./pages/MyOrders";
 import Restaurant from "./pages/Restaurant";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminUsers from "./pages/AdminUsers";
-import AdminRestaurants from "./pages/AdminRestaurants";
-import AdminOrders from "./pages/AdminOrders";
-import AdminProducts from "./pages/AdminProducts";
 import RestaurantPanel from "./pages/RestaurantPanel";
 
 import RestaurantLayout from "./pages/RestaurantLayout";
@@ -26,6 +21,13 @@ import RestaurantOrders from "./pages/RestaurantOrders";
 import RestaurantProfile from "./pages/RestaurantProfile";
 import RestaurantMenu from "./pages/RestaurantMenu";
 import RestaurantMenuForm from "./pages/RestaurantMenuForm";
+
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminRestaurants from "./pages/admin/AdminRestaurants";
+import AdminOrders from "./pages/admin/AdminOrders";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
+
 
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
@@ -53,12 +55,11 @@ function App() {
           </Route>
 
           {/* Admin only */}
-          <Route element={<AdminRoute />}>
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/users" element={<AdminUsers />} />
-            <Route path="/admin/restaurants" element={<AdminRestaurants />} />
-            <Route path="/admin/orders" element={<AdminOrders />} />
-            <Route path="/admin/products" element={<AdminProducts />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />}>
+            <Route path="analytics" element={<AdminAnalytics />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="restaurants" element={<AdminRestaurants />} />
+            <Route path="orders" element={<AdminOrders />} />
           </Route>
 
           {/* Restaurant owner Dasboard */}
