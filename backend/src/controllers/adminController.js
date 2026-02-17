@@ -267,6 +267,60 @@ const createProductWithImage = async (req, res) => {
   }
 };
 
+const getPaymentAnalytics = async (req, res) => {
+  try {
+    const totalRevenue = await Order.aggregate([
+      {
+        $match: {
+          paymentStatus: "paid"
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          revenue: { $sum: "$totalPrice" }
+        }
+      }
+    ]);
+
+    const revenueBYDay = await Order.aggregate([
+      {
+        $match: {
+          paymentStatus: "paid"
+        }
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%Y-%m-%d", date: "$paidAt" }
+          },
+          revenue: { $sum: "$totalPrice" }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    const paymentMethods = await Order.aggregate([
+      {
+        $group: {
+          _id: "$paymentMethod",
+          count: { $sum: 1 },
+        }
+      }
+    ]);
+
+    res.json({
+      totalRevenue: totalRevenue[0]?.revenue || 0,
+      revenueByDay,
+      paymentMethods
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Analytics error" });
+    console.error(err);
+  }
+    
+};
+
 module.exports = {
   getAnalytics,
   stats,
@@ -282,5 +336,6 @@ module.exports = {
   approveRestaurant,
   createProduct,
   getAllProducts,
-  createProductWithImage
+  createProductWithImage,
+  getPaymentAnalytics
 };

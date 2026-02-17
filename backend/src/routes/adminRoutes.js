@@ -31,4 +31,5 @@ router.patch("/users/:id/role", authMiddleware, permit("admin"), adminCtrl.updat
 router.get("/restaurants/pending", authMiddleware, permit("admin"), adminCtrl.getPendingRestaurants);
 router.patch("/restaurants/:id/status", authMiddleware, permit("admin"), adminCtrl.updateRestaurantStatus);
 router.post("/products", upload.single("image"), adminCtrl.createProductWithImage);
+router.get("/payment-analytics", authMiddleware, permit("admin"), adminCtrl.getPaymentAnalytics);
 module.exports = router;

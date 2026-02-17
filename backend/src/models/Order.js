@@ -53,6 +53,11 @@ const OrderSchema = new mongoose.Schema(
       ],
       default: 'pending'
     },
+
+    stripeSessionId: String,
+    stripePaymentIntentId: String,
+    paidAt: Date,
+
     deliveryAddress: { type: String, required: true },
     phone: { type: String, required: true }
   },
