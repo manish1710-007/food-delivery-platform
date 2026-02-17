@@ -16,6 +16,7 @@ const ProductSchema = new mongoose.Schema({
   category: {
     type: String,
     enum: ['Appetizer', 'Main Course', 'Dessert', 'Beverage', 'Pizza', 'Burger', 'Salad', 'Other'],
+    ref: "Category",
     required: true
   },
 

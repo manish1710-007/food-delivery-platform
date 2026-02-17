@@ -56,6 +56,26 @@ export default function RestaurantMenuForm({
     }
   };
 
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    api.get("/categories").then(res=>{setCategories(res.data)});
+  }, []);
+
+  <select
+    value={form.category}
+    onChange={e => setForm({ ...form, category: e.target.value })}
+    className="form-select"
+  >
+
+    <option>Select category</option>
+    {categories.map(cat => (
+      <option key={cat._id} value={cat._id}>
+        {cat.name}
+      </option>
+    ))}
+  </select>
+
   return (
     <div className="card shadow-sm mb-4">
       <div className="card-body">
