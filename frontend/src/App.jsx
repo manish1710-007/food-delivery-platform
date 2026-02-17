@@ -27,6 +27,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminRestaurants from "./pages/admin/AdminRestaurants";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminProducts from "./pages/admin/AdminProducts";
 
 
 import Login from "./pages/auth/Login";
@@ -60,6 +61,7 @@ function App() {
             <Route path="users" element={<AdminUsers />} />
             <Route path="restaurants" element={<AdminRestaurants />} />
             <Route path="orders" element={<AdminOrders />} />
+            <Route path="products" element={<AdminProducts />} />
           </Route>
 
           {/* Restaurant owner Dasboard */}
