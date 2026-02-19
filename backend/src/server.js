@@ -10,6 +10,7 @@ const errorHandler = require("./middlewares/errorHandler");
 const orderSocket = require("./sockets/orderSocket");
 
 // Routes
+const uploadRoutes = require("./routes/uploadRoutes");
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const restaurantRoutes = require("./routes/restaurantRoutes");
@@ -19,7 +20,10 @@ const cartRoutes = require("./routes/cartRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 
+
+
 const app = express();
+
 
 // MIDDLEWARES
 app.use(express.json());
@@ -57,6 +61,8 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/restaurant-owner", require("./routes/restaurantOwnerRoutes"));
 app.use("/api/payment", paymentRoutes);
 app.use("/api/categories", categoryRoutes);
+
+app.use("/api/upload", uploadRoutes);
 
 app.get("/api/health", (req, res) =>
   res.json({ ok: true, ts: Date.now() })

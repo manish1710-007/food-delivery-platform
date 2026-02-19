@@ -10,6 +10,7 @@
     "dev": "concurrently \"yarn --cwd backend dev\" \"yarn --cwd frontend/client dev\""
   },
   "dependencies": {
+    "cloudinary": "^2.9.0",
     "recharts": "^3.7.0"
   }
 }
