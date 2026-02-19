@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import api from "../../api/axios";
 
 export default function AdminProducts() {
+
   const [products, setProducts] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
 
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
 
   const [search, setSearch] = useState("");
   const [restaurantFilter, setRestaurantFilter] = useState("");
@@ -50,6 +52,7 @@ export default function AdminProducts() {
 
   function openCreate() {
     setEditing(null);
+
     setForm({
       name: "",
       price: "",
@@ -58,6 +61,7 @@ export default function AdminProducts() {
       image: "",
       available: true,
     });
+
     setShowModal(true);
   }
 
@@ -65,12 +69,12 @@ export default function AdminProducts() {
     setEditing(product);
 
     setForm({
-      name: product.name,
-      price: product.price,
+      name: product.name || "",
+      price: product.price || "",
       category: product.category || "",
       restaurant: product.restaurant?._id || "",
       image: product.image || "",
-      available: product.available,
+      available: product.available ?? true,
     });
 
     setShowModal(true);
@@ -80,64 +84,127 @@ export default function AdminProducts() {
     e.preventDefault();
 
     try {
+
       if (editing) {
+
         await api.put(`/products/${editing._id}`, form);
+
       } else {
+
         await api.post("/products", form);
+
       }
 
       setShowModal(false);
       fetchProducts();
+
     } catch (err) {
+
       console.error(err);
       alert("Save failed");
+
     }
   }
 
   async function handleDelete(id) {
-    if (!confirm("Delete this product?")) return;
+
+    if (!window.confirm("Delete this product?")) return;
 
     try {
+
       await api.delete(`/products/${id}`);
       fetchProducts();
+
     } catch (err) {
-        console.error(err);
+
+      console.error(err);
       alert("Delete failed");
+
+    }
+  }
+
+  async function toggleAvailability(product) {
+
+    try {
+
+      await api.put(`/products/${product._id}`, {
+        ...product,
+        available: !product.available,
+        restaurant: product.restaurant?._id,
+      });
+
+      fetchProducts();
+
+    } catch (err) {
+
+      console.error(err);
+      alert("Failed to toggle availability");
+
     }
   }
 
   async function uploadImage(e) {
+
     const file = e.target.files[0];
+
+    if (!file) return;
+
+    setUploading(true);
 
     const data = new FormData();
     data.append("file", file);
     data.append("upload_preset", "fooddash");
 
-    const res = await fetch(
-      "https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload",
-      { method: "POST", body: data }
-    );
+    try {
 
-    const json = await res.json();
+      const res = await fetch(
+        "https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload",
+        {
+          method: "POST",
+          body: data,
+        }
+      );
 
-    setForm({ ...form, image: json.secure_url });
+      const json = await res.json();
+
+      setForm({
+        ...form,
+        image: json.secure_url,
+      });
+
+    } catch (err) {
+
+      console.error(err);
+      alert("Image upload failed");
+
+    }
+
+    setUploading(false);
   }
 
   const filtered = products.filter((p) => {
+
     return (
       p.name.toLowerCase().includes(search.toLowerCase()) &&
       (!restaurantFilter ||
         p.restaurant?._id === restaurantFilter)
     );
+
   });
 
-  if (loading) return <div className="p-4">Loading products...</div>;
+  if (loading)
+    return (
+      <div className="container mt-4">
+        Loading products...
+      </div>
+    );
 
   return (
     <div className="container mt-4">
 
       {/* HEADER */}
       <div className="d-flex justify-content-between mb-3">
+
         <h3>🍔 Product Management</h3>
 
         <button
@@ -146,6 +213,7 @@ export default function AdminProducts() {
         >
           + Add Product
         </button>
+
       </div>
 
 
@@ -153,15 +221,21 @@ export default function AdminProducts() {
       <div className="row mb-3">
 
         <div className="col-md-4">
+
           <input
             className="form-control"
             placeholder="Search products"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
           />
+
         </div>
 
+
         <div className="col-md-4">
+
           <select
             className="form-control"
             value={restaurantFilter}
@@ -169,24 +243,33 @@ export default function AdminProducts() {
               setRestaurantFilter(e.target.value)
             }
           >
-            <option value="">All Restaurants</option>
+
+            <option value="">
+              All Restaurants
+            </option>
 
             {restaurants.map((r) => (
+
               <option key={r._id} value={r._id}>
                 {r.name}
               </option>
+
             ))}
+
           </select>
+
         </div>
 
       </div>
 
 
       {/* TABLE */}
-      <table className="table table-bordered">
+      <table className="table table-bordered align-middle">
 
         <thead>
+
           <tr>
+
             <th>Image</th>
             <th>Name</th>
             <th>Restaurant</th>
@@ -194,21 +277,35 @@ export default function AdminProducts() {
             <th>Price</th>
             <th>Status</th>
             <th>Actions</th>
+
           </tr>
+
         </thead>
 
         <tbody>
+
+          {filtered.length === 0 && (
+
+            <tr>
+              <td colSpan="7" className="text-center">
+                No products found
+              </td>
+            </tr>
+
+          )}
 
           {filtered.map((p) => (
 
             <tr key={p._id}>
 
               <td>
+
                 <img
                   src={p.image}
                   width="60"
                   alt=""
                 />
+
               </td>
 
               <td>{p.name}</td>
@@ -220,19 +317,42 @@ export default function AdminProducts() {
               <td>₹{p.price}</td>
 
               <td>
-                {p.available
-                  ? "Available"
-                  : "Unavailable"}
+
+                <span
+                  className={`badge ${
+                    p.available
+                      ? "bg-success"
+                      : "bg-secondary"
+                  }`}
+                >
+                  {p.available
+                    ? "Available"
+                    : "Unavailable"}
+                </span>
+
               </td>
 
               <td>
 
                 <button
                   className="btn btn-sm btn-warning me-2"
-                  onClick={() => openEdit(p)}
+                  onClick={() =>
+                    openEdit(p)
+                  }
                 >
                   Edit
                 </button>
+
+
+                <button
+                  className="btn btn-sm btn-secondary me-2"
+                  onClick={() =>
+                    toggleAvailability(p)
+                  }
+                >
+                  Toggle
+                </button>
+
 
                 <button
                   className="btn btn-sm btn-danger"
@@ -256,137 +376,189 @@ export default function AdminProducts() {
 
       {/* MODAL */}
       {showModal && (
-        <div className="modal show d-block">
-          <div className="modal-dialog">
 
-            <form
-              className="modal-content"
-              onSubmit={handleSubmit}
-            >
+        <>
+          <div className="modal show d-block">
 
-              <div className="modal-header">
-                <h5>
-                  {editing
-                    ? "Edit Product"
-                    : "Add Product"}
-                </h5>
+            <div className="modal-dialog">
 
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() =>
-                    setShowModal(false)
-                  }
-                />
-              </div>
+              <form
+                className="modal-content"
+                onSubmit={handleSubmit}
+              >
 
+                <div className="modal-header">
 
-              <div className="modal-body">
+                  <h5>
 
-                <input
-                  className="form-control mb-2"
-                  placeholder="Name"
-                  value={form.name}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      name: e.target.value,
-                    })
-                  }
-                />
+                    {editing
+                      ? "Edit Product"
+                      : "Add Product"}
 
-                <input
-                  className="form-control mb-2"
-                  placeholder="Price"
-                  value={form.price}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      price: e.target.value,
-                    })
-                  }
-                />
+                  </h5>
 
-                <input
-                  className="form-control mb-2"
-                  placeholder="Category"
-                  value={form.category}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      category: e.target.value,
-                    })
-                  }
-                />
-
-
-                <select
-                  className="form-control mb-2"
-                  value={form.restaurant}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      restaurant:
-                        e.target.value,
-                    })
-                  }
-                >
-                  <option>
-                    Select restaurant
-                  </option>
-
-                  {restaurants.map((r) => (
-                    <option
-                      key={r._id}
-                      value={r._id}
-                    >
-                      {r.name}
-                    </option>
-                  ))}
-                </select>
-
-
-                <input
-                  type="file"
-                  className="form-control mb-2"
-                  onChange={uploadImage}
-                />
-
-                {form.image && (
-                  <img
-                    src={form.image}
-                    width="100"
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() =>
+                      setShowModal(false)
+                    }
                   />
-                )}
 
-              </div>
+                </div>
 
 
-              <div className="modal-footer">
+                <div className="modal-body">
 
-                <button
-                  className="btn btn-secondary"
-                  type="button"
-                  onClick={() =>
-                    setShowModal(false)
-                  }
-                >
-                  Cancel
-                </button>
+                  <input
+                    className="form-control mb-2"
+                    placeholder="Name"
+                    value={form.name}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        name: e.target.value,
+                      })
+                    }
+                    required
+                  />
 
-                <button
-                  className="btn btn-primary"
-                  type="submit"
-                >
-                  Save
-                </button>
 
-              </div>
+                  <input
+                    type="number"
+                    className="form-control mb-2"
+                    placeholder="Price"
+                    value={form.price}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        price: e.target.value,
+                      })
+                    }
+                    required
+                  />
 
-            </form>
+
+                  <input
+                    className="form-control mb-2"
+                    placeholder="Category"
+                    value={form.category}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        category: e.target.value,
+                      })
+                    }
+                  />
+
+
+                  <select
+                    className="form-control mb-2"
+                    value={form.restaurant}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        restaurant:
+                          e.target.value,
+                      })
+                    }
+                    required
+                  >
+
+                    <option value="">
+                      Select restaurant
+                    </option>
+
+                    {restaurants.map((r) => (
+
+                      <option
+                        key={r._id}
+                        value={r._id}
+                      >
+                        {r.name}
+                      </option>
+
+                    ))}
+
+                  </select>
+
+
+                  <input
+                    type="file"
+                    className="form-control mb-2"
+                    onChange={uploadImage}
+                  />
+
+                  {uploading && (
+                    <p>Uploading image...</p>
+                  )}
+
+                  {form.image && (
+
+                    <img
+                      src={form.image}
+                      width="120"
+                      alt=""
+                    />
+
+                  )}
+
+
+                  <div className="form-check mt-2">
+
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      checked={form.available}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          available:
+                            e.target.checked,
+                        })
+                      }
+                    />
+
+                    <label className="form-check-label">
+                      Available
+                    </label>
+
+                  </div>
+
+                </div>
+
+
+                <div className="modal-footer">
+
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() =>
+                      setShowModal(false)
+                    }
+                  >
+                    Cancel
+                  </button>
+
+
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                  >
+                    Save
+                  </button>
+
+                </div>
+
+              </form>
+
+            </div>
 
           </div>
-        </div>
+
+          <div className="modal-backdrop show"></div>
+
+        </>
       )}
 
     </div>
