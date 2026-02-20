@@ -6,22 +6,48 @@ const Restaurant = require("../models/Restaurant");
 // Restaurants 
 
 const createRestaurant = async (req, res) => {
-  const { name, address } = req.body;
+  try{
+    const {
+      name,
+      description,
+      image,
+      address,
+      phone,
+      owner
+    } = req.body;
 
-  if (!name) {
-    return res.status(400).json({ message: "Restaurant name required" });
+    if (!name) {
+      return res.status(400).json({
+        message: "Restaurant name is required"
+      });
+    }
+
+    const restaurant = await Restaurant.create({
+      name,
+      description,
+      image,
+      address,
+      phone,
+      owner,
+      status: "approved", // admin auto-approval
+      isActive: true
+    });
+
+    res.status(201).json({
+      message: "Restaurant created successfully",
+      restaurant
+    });
+
+  } catch (err) {
+
+    console.error("Create restaurant error:", err);
+
+    res.status(500).json({
+      message: "Failed to create restaurant"
+    });
   }
-
-  const restaurant = await Restaurant.create({
-    name, 
-    address,
-    isApproved: false
-  });
-
-  res.status(201).json({
-    message: "Restaurant created, pending approval",
-  });
 };
+  
 
 const getAllRestaurants = async (req, res) => {
   const restaurants = (await Restaurant.find()).sort({ createdAt: -1 });
@@ -86,19 +112,17 @@ const getPendingRestaurants = async (req, res) => {
     return res.status(400).json({ message: "Invalid status" });
   }
 
-  const restaurant = await Restaurant.findById(req.params.id);
+  const restaurant = await Restaurant.findByIdAndUpdate(req.params.id, { status }, { new: true });
   if (!restaurant) {
     return res.status(404).json({ message: "Restaurant not found" });
   }
-
-  restaurant.status = status;
   restaurant.approvedAt = new Date();
   restaurant.approvedBy = req.user._id;
 
   await restaurant.save();
 
   res.json({ 
-    message: 'Restaurant ${status}',
+    message: `Restaurant ${status}`,
     restaurant
   });
 };
@@ -180,8 +204,77 @@ const listUsers = async (req, res) => {
 };
 
 const listRestaurants = async (req, res) => {
-  const restaurants = await Restaurant.find();
-  res.json(restaurants);
+  try{
+    const restaurants = await Restaurant.find().populate("owner", "name email").sort({ createdAt: -1 });
+    res.json(restaurants);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch restaurants" });
+  }
+};
+
+const getRestaurantById = async (req, res) => {
+  try {
+    const restaurant = await Restaurant.findById(req.params.id).populate("owner", "name email");
+    if (!restaurant) {
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+    res.json(restaurant);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch restaurant" });
+  }
+};
+
+const updateRestaurant = async (req, res) => {
+  try {
+    const restaurant = await Restaurant.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    if (!restaurant) {
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+    res.json({
+      message: "Restaurant updated successfully",
+      restaurant
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Update Failed" });
+  }
+};
+
+const deleteRestaurant = async (req, res) => {
+  try {
+    const restaurant = await Restaurant.findByIdAndDelete(req.params.id);
+    if (!restaurant) {
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+    res.json({ message: "Restaurant deleted" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Deletion Failed" });
+  }
+};
+
+const toggleRestaurantActive = async (req, res) => {
+  try {
+    const restaurant = await Restaurant.findById(req.params.id);
+    if (!restaurant) {
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+    restaurant.isActive = !restaurant.isActive;
+    await restaurant.save();
+    res.json({
+      message: "Restaurant status toggled",
+      restaurant
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Toggle failed" });
+  }
 };
 
 const listOrders = async (req, res) => {
@@ -321,6 +414,8 @@ const getPaymentAnalytics = async (req, res) => {
     
 };
 
+
+
 module.exports = {
   getAnalytics,
   stats,
@@ -337,5 +432,9 @@ module.exports = {
   createProduct,
   getAllProducts,
   createProductWithImage,
-  getPaymentAnalytics
+  getPaymentAnalytics,
+  getRestaurantById,
+  updateRestaurant,
+  deleteRestaurant,
+  toggleRestaurantActive
 };

@@ -4,102 +4,112 @@ import RestaurantCard from "../components/RestaurantCard";
 import ProductCard from "../components/ProductCard";
 
 export default function Home() {
-  const [products, setProducts] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState([]);
+
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [restaurantRes, productRes] = await Promise.all([
-          api.get("/restaurants"),
-          api.get("/products"),
-        ]);
-
-        setRestaurants(restaurantRes.data);
-        setProducts(productRes.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    loadData();
   }, []);
 
-  const filteredRestaurants = restaurants.filter((r) =>
+  async function loadData() {
+    try {
+      const [restaurantsRes, productsRes] = await Promise.all([
+        api.get("/restaurants"),
+        api.get("/products"),
+      ]);
+
+      setRestaurants(restaurantsRes.data);
+      setProducts(productsRes.data);
+
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const filteredRestaurants = restaurants.filter(r =>
     r.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (loading)
+  if (loading) {
     return (
-      <div className="container mt-5">
-        <h4>Loading amazing food near you...</h4>
+      <div className="container mt-5 text-center">
+        <h4>Loading FoodDash...</h4>
       </div>
     );
+  }
 
   return (
     <div>
 
       {/* HERO SECTION */}
       <div
-        className="text-white text-center py-5"
+        className="text-white text-center d-flex align-items-center justify-content-center"
         style={{
-          background: "linear-gradient(135deg, #ff7e5f, #feb47b)",
+          height: "300px",
+          background:
+            "linear-gradient(135deg, #ff512f, #dd2476)",
         }}
       >
-        <div className="container">
-          <h1 className="fw-bold">Delicious food, delivered fast 🚀</h1>
-
-          <p>Order from your favorite restaurants near you</p>
+        <div>
+          <h1 className="fw-bold">FoodDash 🍔</h1>
+          <p>Order food from your favorite restaurants</p>
 
           <input
-            type="text"
-            className="form-control form-control-lg mt-3"
+            className="form-control mt-3"
+            style={{ width: "300px", margin: "auto" }}
             placeholder="Search restaurants..."
-            style={{ maxWidth: 500, margin: "auto" }}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
 
-      {/* RESTAURANTS SECTION */}
+
+      {/* RESTAURANTS */}
       <div className="container mt-5">
 
-        <h3 className="mb-4">🍽 Nearby Restaurants</h3>
-
-        <div className="row">
-          {filteredRestaurants.length === 0 && (
-            <p>No restaurants found</p>
-          )}
-
-          {filteredRestaurants.map((restaurant) => (
-            <div key={restaurant._id} className="col-md-4 mb-4">
-              <RestaurantCard restaurant={restaurant} />
-            </div>
-          ))}
+        <div className="d-flex justify-content-between mb-3">
+          <h3>Nearby Restaurants</h3>
+          <span className="text-muted">
+            {filteredRestaurants.length} found
+          </span>
         </div>
 
+        {filteredRestaurants.length === 0 ? (
+          <p>No restaurants found</p>
+        ) : (
+          <div className="row">
+            {filteredRestaurants.map(r => (
+              <div className="col-md-4 mb-4" key={r._id}>
+                <RestaurantCard restaurant={r} />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* POPULAR FOODS SECTION */}
-      <div className="container mt-5">
 
-        <h3 className="mb-4">🔥 Popular Dishes</h3>
+      {/* FEATURED PRODUCTS */}
+      <div className="container mt-5 mb-5">
 
-        <div className="row">
+        <h3 className="mb-3">Popular Foods</h3>
 
-          {products.slice(0, 8).map((product) => (
-            <div key={product._id} className="col-md-3 mb-4">
-              <ProductCard product={product} />
-            </div>
-          ))}
-
-        </div>
-
+        {products.length === 0 ? (
+          <p>No products available</p>
+        ) : (
+          <div className="row">
+            {products.slice(0, 8).map(p => (
+              <div className="col-md-3 mb-4" key={p._id}>
+                <ProductCard product={p} />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
     </div>
