@@ -158,7 +158,7 @@ export default function AdminProducts() {
     try {
 
       const res = await fetch(
-        "https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload",
+        "https://api.cloudinary.com/v1_1/dcl5zom8v/image/upload",
         {
           method: "POST",
           body: data,

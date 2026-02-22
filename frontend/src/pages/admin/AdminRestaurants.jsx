@@ -4,15 +4,12 @@ import api from "../../api/axios";
 export default function AdminRestaurants() {
 
   const [restaurants, setRestaurants] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-        loadRestaurants();
-    }, []);
+  const [search, setSearch] = useState("");
 
-    const loadRestaurants = async () => {
-        const res = await api.get("/admin/restaurants");
-        setRestaurants(res.data);
-    };
+  const [showModal, setShowModal] = useState(false);
+  const [editing, setEditing] = useState(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -21,30 +18,149 @@ export default function AdminRestaurants() {
     image: "",
   });
 
-  const [uploading, setUploading] = useState(false);
-
   useEffect(() => {
     fetchRestaurants();
   }, []);
 
-  const fetchRestaurants = async () => {
-    const res = await api.get("/restaurants");
-    setRestaurants(res.data);
-  };
+  async function fetchRestaurants() {
+    try {
+      const res = await api.get("/admin/restaurants");
+      setRestaurants(res.data);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load restaurants");
+    } finally {
+      setLoading(false);
+    }
+  }
 
-  const uploadImage = async (e) => {
+ 
+  function openCreate() {
+    setEditing(null);
+    setForm({
+      name: "",
+      description: "",
+      address: "",
+      image: "",
+    });
+    setShowModal(true);
+  }
+
+  function openEdit(r) {
+    setEditing(r);
+
+    setForm({
+      name: r.name,
+      description: r.description || "",
+      address: r.address || "",
+      image: r.image || "",
+    });
+
+    setShowModal(true);
+  }
+
+ 
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    try {
+
+      if (editing) {
+
+        await api.put(
+          `/admin/restaurants/${editing._id}`,
+          form
+        );
+
+      } else {
+
+        await api.post(
+          "/admin/restaurants",
+          form
+        );
+
+      }
+
+      setShowModal(false);
+      fetchRestaurants();
+
+    } catch (err) {
+      console.error(err);
+      alert("Save failed");
+    }
+  }
+
+  async function handleDelete(id) {
+
+    if (!confirm("Delete this restaurant?")) return;
+
+    try {
+
+      await api.delete(
+        `/admin/restaurants/${id}`
+      );
+
+      fetchRestaurants();
+
+    } catch (err) {
+      console.error(err);
+      alert("Delete failed");
+    }
+  }
+
+
+  async function toggleActive(id) {
+
+    try {
+
+      await api.patch(
+        `/admin/restaurants/${id}/toggle`
+      );
+
+      fetchRestaurants();
+
+    } catch (err) {
+      console.error(err);
+      alert("Toggle failed");
+    }
+  }
+
+ 
+  async function toggleApproval(id) {
+
+    try {
+
+      await api.patch(
+        `/admin/restaurants/${id}/approve`
+      );
+
+      fetchRestaurants();
+
+    } catch (err) {
+      console.error(err);
+      alert("Approval failed");
+    }
+  }
+
+ 
+  async function uploadImage(e) {
+
     const file = e.target.files[0];
-    if (!file) return;
-
-    setUploading(true);
 
     const data = new FormData();
+
     data.append("file", file);
-    data.append("upload_preset", "fooddash");
+    data.append(
+      "upload_preset",
+      "fooddash"
+    );
 
     const res = await fetch(
-      "https://api.cloudinary.com/v1_1/dzqj8y7l6/image/upload",
-      { method: "POST", body: data }
+      `https://api.cloudinary.com/v1_1/dcl5zom8v/image/upload`,
+      {
+        method: "POST",
+        body: data,
+      }
     );
 
     const json = await res.json();
@@ -53,122 +169,311 @@ export default function AdminRestaurants() {
       ...form,
       image: json.secure_url,
     });
+  }
 
-    setUploading(false);
-  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const filtered = restaurants.filter(r =>
+    r.name.toLowerCase().includes(
+      search.toLowerCase()
+    )
+  );
 
-    await api.post("/restaurants", form);
 
-    setForm({
-      name: "",
-      description: "",
-      address: "",
-      image: "",
-    });
+  if (loading)
+    return (
+      <div className="p-4">
+        Loading restaurants...
+      </div>
+    );
 
-    fetchRestaurants();
-  };
-
+ 
   return (
-    <div className="container">
+    <div className="container-fluid">
 
-      <h2 className="mb-4">Restaurants</h2>
+      {/* HEADER */}
 
-      {/* ADD RESTAURANT FORM */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
 
-      <div className="card mb-4">
-        <div className="card-body">
+        <h3>🏪 Restaurant Management</h3>
 
-          <h5>Add Restaurant</h5>
+        <button
+          className="btn btn-primary"
+          onClick={openCreate}
+        >
+          + Add Restaurant
+        </button>
 
-          <form onSubmit={handleSubmit}>
-
-            <input
-              className="form-control mb-2"
-              placeholder="Name"
-              value={form.name}
-              onChange={(e) =>
-                setForm({ ...form, name: e.target.value })
-              }
-            />
-
-            <input
-              className="form-control mb-2"
-              placeholder="Address"
-              value={form.address}
-              onChange={(e) =>
-                setForm({ ...form, address: e.target.value })
-              }
-            />
-
-            <textarea
-              className="form-control mb-2"
-              placeholder="Description"
-              value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-            />
-
-            <input
-              type="file"
-              className="form-control mb-2"
-              onChange={uploadImage}
-            />
-
-            {uploading && <p>Uploading...</p>}
-
-            {form.image && (
-              <img
-                src={form.image}
-                width="120"
-                className="mb-2"
-              />
-            )}
-
-            <button className="btn btn-primary">
-              Add Restaurant
-            </button>
-
-          </form>
-
-        </div>
       </div>
 
-      {/* RESTAURANTS LIST */}
 
-      <div className="row">
+      {/* SEARCH */}
 
-        {restaurants.map((r) => (
-          <div key={r._id} className="col-md-4">
+      <div className="mb-3">
 
-            <div className="card mb-3">
+        <input
+          className="form-control"
+          placeholder="Search restaurant..."
+          value={search}
+          onChange={e =>
+            setSearch(e.target.value)
+          }
+        />
 
-              <img
-                src={r.image}
-                className="card-img-top"
-                height="160"
-                style={{ objectFit: "cover" }}
-              />
+      </div>
 
-              <div className="card-body">
 
-                <h5>{r.name}</h5>
+      {/* TABLE */}
 
-                <p>{r.address}</p>
+      <div className="table-responsive">
+
+        <table className="table table-hover">
+
+          <thead className="table-dark">
+
+            <tr>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Address</th>
+              <th>Approval</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+            {filtered.map(r => (
+
+              <tr key={r._id}>
+
+                <td>
+                  <img
+                    src={r.image}
+                    width="60"
+                    style={{
+                      borderRadius: "8px",
+                    }}
+                  />
+                </td>
+
+                <td>{r.name}</td>
+
+                <td>{r.address}</td>
+
+
+                {/* APPROVAL */}
+
+                <td>
+
+                  <span
+                    className={`badge ${
+                      r.status === "approved"
+                        ? "bg-success"
+                        : "bg-warning"
+                    }`}
+                  >
+                    {r.status}
+                  </span>
+
+                </td>
+
+
+                {/* ACTIVE */}
+
+                <td>
+
+                  <span
+                    className={`badge ${
+                      r.isActive
+                        ? "bg-success"
+                        : "bg-secondary"
+                    }`}
+                  >
+                    {r.isActive
+                      ? "Active"
+                      : "Inactive"}
+                  </span>
+
+                </td>
+
+
+                {/* ACTIONS */}
+
+                <td>
+
+                  <button
+                    className="btn btn-sm btn-info me-2"
+                    onClick={() =>
+                      toggleApproval(r._id)
+                    }
+                  >
+                    Approve
+                  </button>
+
+
+                  <button
+                    className="btn btn-sm btn-secondary me-2"
+                    onClick={() =>
+                      toggleActive(r._id)
+                    }
+                  >
+                    Toggle
+                  </button>
+
+
+                  <button
+                    className="btn btn-sm btn-warning me-2"
+                    onClick={() =>
+                      openEdit(r)
+                    }
+                  >
+                    Edit
+                  </button>
+
+
+                  <button
+                    className="btn btn-sm btn-danger"
+                    onClick={() =>
+                      handleDelete(r._id)
+                    }
+                  >
+                    Delete
+                  </button>
+
+                </td>
+
+              </tr>
+
+            ))}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+
+      {/* MODAL */}
+
+      {showModal && (
+
+        <div className="modal show d-block">
+
+          <div className="modal-dialog">
+
+            <form
+              className="modal-content"
+              onSubmit={handleSubmit}
+            >
+
+              <div className="modal-header">
+
+                <h5>
+                  {editing
+                    ? "Edit Restaurant"
+                    : "Add Restaurant"}
+                </h5>
+
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() =>
+                    setShowModal(false)
+                  }
+                />
 
               </div>
 
-            </div>
+
+              <div className="modal-body">
+
+                <input
+                  className="form-control mb-2"
+                  placeholder="Name"
+                  value={form.name}
+                  onChange={e =>
+                    setForm({
+                      ...form,
+                      name: e.target.value,
+                    })
+                  }
+                />
+
+                <input
+                  className="form-control mb-2"
+                  placeholder="Address"
+                  value={form.address}
+                  onChange={e =>
+                    setForm({
+                      ...form,
+                      address:
+                        e.target.value,
+                    })
+                  }
+                />
+
+                <textarea
+                  className="form-control mb-2"
+                  placeholder="Description"
+                  value={form.description}
+                  onChange={e =>
+                    setForm({
+                      ...form,
+                      description:
+                        e.target.value,
+                    })
+                  }
+                />
+
+                <input
+                  type="file"
+                  className="form-control mb-2"
+                  onChange={uploadImage}
+                />
+
+                {form.image && (
+
+                  <img
+                    src={form.image}
+                    width="100"
+                  />
+
+                )}
+
+              </div>
+
+
+              <div className="modal-footer">
+
+                <button
+                  className="btn btn-secondary"
+                  type="button"
+                  onClick={() =>
+                    setShowModal(false)
+                  }
+                >
+                  Cancel
+                </button>
+
+                <button
+                  className="btn btn-primary"
+                  type="submit"
+                >
+                  Save
+                </button>
+
+              </div>
+
+            </form>
 
           </div>
-        ))}
 
-      </div>
+        </div>
+
+      )}
 
     </div>
   );
+
 }
