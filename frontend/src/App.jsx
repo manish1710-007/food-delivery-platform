@@ -18,6 +18,9 @@ import Restaurant from "./pages/Restaurant";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
+
 /* Admin pages */
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
@@ -100,6 +103,9 @@ function App() {
 
           </Route>
 
+          {/* Add more routes here as needed */}
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
 
           {/* fallback */}
           <Route path="*" element={<Home />} />

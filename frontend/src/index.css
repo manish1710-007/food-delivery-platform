@@ -66,3 +66,34 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Smooth transition for theme toggling */
+body, .card, .btn, input {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Premium Dark Mode Overrides */
+[data-bs-theme="dark"] body {
+  background-color: #121212;
+}
+
+[data-bs-theme="dark"] .custom-card {
+  background-color: #1e1e24 !important; /* Soft dark gray instead of pure black/white */
+  border: 1px solid #2d2d3a !important;
+}
+
+[data-bs-theme="dark"] .form-control {
+  background-color: #2b2b36 !important;
+  color: #fff !important;
+  border: 1px solid #444 !important;
+}
+
+[data-bs-theme="dark"] .form-control::placeholder {
+  color: #888 !important;
+}
+
+[data-bs-theme="dark"] .badge.bg-light {
+  background-color: #2b2b36 !important;
+  color: #eee !important;
+  border-color: #444 !important;
+}
