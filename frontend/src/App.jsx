@@ -8,6 +8,9 @@ import AdminRoute from "./components/AdminRoute";
 import DashboardLayout from "./layouts/DashboardLayout";
 import RestaurantLayout from "./pages/RestaurantLayout";
 
+
+import { CartProvider } from "./context/CartContext";
+
 import Home from "./pages/Home";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
@@ -21,13 +24,14 @@ import Register from "./pages/auth/Register";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 
-/* Admin pages */
+
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminRestaurants from "./pages/admin/AdminRestaurants";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminProducts from "./pages/admin/AdminProducts";
+import AdminCategories from "./pages/admin/AdminCategories";
 
 /* Restaurant pages */
 import RestaurantOrders from "./pages/RestaurantOrders";
@@ -38,11 +42,13 @@ import RestaurantMenuForm from "./pages/RestaurantMenuForm";
 function App() {
   return (
     <AuthProvider>
+      <CartProvider>
       <BrowserRouter>
-
         <Navbar />
 
         <Routes>
+
+          
 
           {/* Public */}
           <Route path="/" element={<Home />} />
@@ -80,6 +86,7 @@ function App() {
 
                 <Route path="/admin/products" element={<AdminProducts />} />
 
+                <Route path="/admin/categories" element={<AdminCategories />} />
               </Route>
 
             </Route>
@@ -113,6 +120,7 @@ function App() {
         </Routes>
 
       </BrowserRouter>
+      </CartProvider>
     </AuthProvider>
   );
 }

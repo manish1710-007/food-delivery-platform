@@ -36,7 +36,7 @@ export default function Login() {
       <div className="row g-0 h-100">
         
         
-        <div className="col-md-5 col-lg-4 d-flex justify-content-center align-items-center bg-white shadow-sm z-1">
+        <div className="col-md-5 col-lg-4 d-flex justify-content-center align-items-center bg-body shadow-sm z-1">
           <div className="w-100 p-5" style={{ maxWidth: "450px" }}>
             <div className="text-center mb-4">
               <h2 className="fw-bold">Welcome Back 👋</h2>

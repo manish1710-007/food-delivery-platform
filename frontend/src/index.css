@@ -97,3 +97,17 @@ body, .card, .btn, input {
   color: #eee !important;
   border-color: #444 !important;
 }
+
+/* Premium hover effect for Admin Cards */
+.admin-card-hover {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.admin-card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+
+[data-bs-theme="dark"] .admin-card-hover:hover {
+  box-shadow: 0 10px 20px rgba(0,0,0,0.4) !important;
+}

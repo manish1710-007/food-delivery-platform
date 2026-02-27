@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useCart } from "../context/CartContext";
 import api from "../api/axios";
 
 export default function Cart() {
@@ -7,6 +8,7 @@ export default function Cart() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { fetchCartCount } = useCart();
 
   const fetchCart = async () => {
     try {
@@ -36,6 +38,8 @@ export default function Cart() {
         restaurant: restaurantId 
       });
 
+      fetchCartCount(); // Update cart count in Navbar
+
       alert("Order placed successfully! 🎉");
       navigate("/orders"); 
     } catch (err) {
@@ -47,6 +51,9 @@ export default function Cart() {
     try {
       await api.delete(`/orders/cart/${id}`);
       setCart((prev) => prev.filter((item) => item._id !== id));
+
+      fetchCartCount(); // Update cart count in Navbar
+
     } catch {
       alert("Failed to remove item");
     }
