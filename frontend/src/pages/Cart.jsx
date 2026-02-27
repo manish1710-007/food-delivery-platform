@@ -27,24 +27,10 @@ export default function Cart() {
   }, []);
 
   const checkout = async () => {
-    try {
-      const restaurantId = cart.length > 0 ? cart[0].restaurant : null;
-
-      if (!restaurantId) {
-        alert("Hold up! We couldn't figure out which restaurant this order is for.");
-        return;
-      }
-      await api.post("/orders/checkout", { 
-        restaurant: restaurantId 
-      });
-
-      fetchCartCount(); // Update cart count in Navbar
-
-      alert("Order placed successfully! 🎉");
-      navigate("/orders"); 
-    } catch (err) {
-      alert(err.response?.data?.message || "Checkout failed");
+    if (cart.length === 0) {
+      return alert("Your cart is empty!");
     }
+    navigate("/checkout");
   };
 
   const removeItem = async (id) => {
