@@ -21,6 +21,7 @@ export default function Checkout() {
       try {
         const res = await api.get("/orders/cart");
         const items = res.data.items || [];
+        console.log("Fetched cart items:", items);
         setCart(items);
 
         // Safely extract the restaurant ID whether the backend nests it or not
@@ -75,15 +76,30 @@ export default function Checkout() {
   };
 
   const handleStripeCheckout = async () => {
+    if (!deliveryAddress || !phone) {
+      return alert("Delivery address and phone number are required!");
+    }
+    if (!restaurantId){
+      return alert("Error: Could not identify the restuarant for this order.");
+    }
+
     try {
-      const res = await api.post("/payment/create-checkout-session");
+      const res = await api.post("/payment/create-checkout-session", {
+        restaurant: restaurantId,
+        deliveryAddress: deliveryAddress,
+        phone: phone 
+      });
+
       window.location.href = res.data.url;
     } catch (err) {
+      alert(err.response?.data?.message || "Payment Failed. Check console.");
       console.error(err);
-      alert("Payment Failed");
+    } finally {
+      setSubmitting(false);
     }
   };
 
+   
   if (loading) return (
       <div className="d-flex justify-content-center p-5">
           <div className="spinner-border text-danger" />

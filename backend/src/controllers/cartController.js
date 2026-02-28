@@ -2,24 +2,32 @@ const Cart = require("../models/Cart");
 
 // GET /orders/cart
 exports.getCart = async (req, res) => {
-  let cart = await Cart.findOne({ user: req.user._id })
-    .populate("items.product", "name price")
-    .lean();
+  try {
+    const cart = await Cart.findOne({ user: req.user._id }).populate("items.product");
 
-  if (!cart) {
-    return res.json({ items: [] });
-  }
+    if (!cart) {
+      return res.json({ items: [] });
+    }
 
-  const items = cart.items.filter(item => item.product).map((item) => ({
-    _id: item._id,
-    productId: item.product._id,
-    name: item.product.name,
-    price: item.product.price,
-    quantity: item.quantity,
-  }));
+    const formattedItems = cart.items.map(item => {
+      if (!item.product) return null; // Skip if product was deleted
+      return {
+        _id: item._id,
+        productId: item.product._id,
+        name: item.product.price,
+        price: item.product.price,
+        quantity: item.quantity,
+        restaurant: item.product.restaurant, // Include restaurant reference
+      };
+    }).filter(item => item !== null);
 
-  res.json({ items });
-};
+    res.json({ items: formattedItems });
+
+    } catch (err){
+      console.error("Cart fetch error:", err);
+      res.status(500).json({ message: "Error fetching cart" });
+    }
+  };
 
 // POST /orders/cart
 exports.addToCart = async (req, res) => {
