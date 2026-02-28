@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import { useCart } from "../context/CartContext"; // Add this to clear the badge!
+import { useCart } from "../context/CartContext";
 
 export default function Checkout() {
   const [cart, setCart] = useState([]);
@@ -13,7 +13,7 @@ export default function Checkout() {
   const [restaurantId, setRestaurantId] = useState("");
 
   const navigate = useNavigate();
-  const { fetchCartCount } = useCart(); // Bring in the global cart fetcher
+  const { fetchCartCount } = useCart();
 
   // Fetch cart
   useEffect(() => {
@@ -61,7 +61,7 @@ export default function Checkout() {
         paymentMethod: "cod",
       });
 
-      // Clear the cart badge in the navbar
+      
       fetchCartCount(); 
 
       alert("Order placed successfully! 🎉");

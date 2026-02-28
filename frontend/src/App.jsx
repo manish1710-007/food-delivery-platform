@@ -32,6 +32,7 @@ import AdminOrders from "./pages/admin/AdminOrders";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminCategories from "./pages/admin/AdminCategories";
+import AdminPaymentAnalytics from "./pages/admin/AdminPaymentAnalytics";
 
 /* Restaurant pages */
 import RestaurantOrders from "./pages/RestaurantOrders";
@@ -87,6 +88,8 @@ function App() {
                 <Route path="/admin/products" element={<AdminProducts />} />
 
                 <Route path="/admin/categories" element={<AdminCategories />} />
+
+                <Route path="/admin/payment-analytics" element={<AdminPaymentAnalytics />} />
               </Route>
 
             </Route>

@@ -22,6 +22,8 @@ export default function DashboardSidebar() {
                     <Link className={`nav-link text-white ${isActive("/admin/restaurants")}`} to="/admin/restaurants">Restaurants</Link>
                     <Link className={`nav-link text-white ${isActive("/admin/orders")}`} to="/admin/orders">Orders</Link>
                     <Link className={`nav-link text-white ${isActive("/admin/categories")}`} to="/admin/categories">Categories</Link>
+                    <Link className={`nav-link text-white ${isActive("/admin/payment-analytics")}`} to="/admin/payment-analytics">Revenue</Link>
+                    <Link className={`nav-link text-white ${isActive("/admin/analytics")}`} to="/admin/analytics">Analytics</Link>
                 </>
             )}
 

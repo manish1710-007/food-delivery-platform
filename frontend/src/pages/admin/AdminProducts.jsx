@@ -45,6 +45,21 @@ export default function AdminProducts() {
     }
   }
 
+  
+  const getRestId = (rest) => {
+    if (!rest) return "";
+    return typeof rest === "object" ? rest._id : rest; // FIXED to handle both populated and raw IDs
+  };
+
+  const getRestName = (rest) => {
+    if (!rest) return "";
+    if (rest.name) return rest.name; // If it's populated
+
+    const searchId = typeof rest === "object" ? String(rest._id) : String(rest); // FIXED to handle both populated and raw IDs
+    const found = restaurants.find(r => String(r._id) === searchId);
+    return found ? found.name : "";
+  };
+
   function openCreate() {
     setEditing(null);
     setForm({ name: "", price: "", category: "", restaurant: "", image: "", available: true });
@@ -57,7 +72,7 @@ export default function AdminProducts() {
       name: product.name || "",
       price: product.price || "",
       category: product.category || "",
-      restaurant: product.restaurant?._id || "",
+      restaurant: getRestId(product.restaurant) || "", // FIXED for raw IDs
       image: product.image || "",
       available: product.available ?? true,
     });
@@ -68,7 +83,6 @@ export default function AdminProducts() {
     e.preventDefault();
     try {
       if (editing) {
-          // FIXED: Using .patch instead of .put to match your backend!
           await api.patch(`/products/${editing._id}`, form);
       } else {
           await api.post("/products", form);
@@ -77,7 +91,6 @@ export default function AdminProducts() {
       fetchProducts();
     } catch (err) {
       console.error("Save failed:", err);
-      // FIXED: Actually show the error if it fails
       alert(err.response?.data?.message || "Failed to save product.");
     }
   }
@@ -95,11 +108,10 @@ export default function AdminProducts() {
 
   async function toggleAvailability(product) {
     try {
-      // FIXED: Using .patch instead of .put here too!
       await api.patch(`/products/${product._id}`, {
         ...product,
         available: !product.available,
-        restaurant: product.restaurant?._id,
+        restaurant: getRestId(product.restaurant), // FIXED for raw IDs
       });
       fetchProducts();
     } catch (err) {
@@ -128,7 +140,8 @@ export default function AdminProducts() {
   }
 
   const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) && (!restaurantFilter || p.restaurant?._id === restaurantFilter)
+    p.name.toLowerCase().includes(search.toLowerCase()) && 
+    (!restaurantFilter || getRestId(p.restaurant) === restaurantFilter) // FIXED for raw IDs
   );
 
   if (loading) return (
@@ -153,8 +166,8 @@ export default function AdminProducts() {
           </div>
           <div className="col-md-6">
             <select className="form-select shadow-none bg-transparent text-body" value={restaurantFilter} onChange={(e) => setRestaurantFilter(e.target.value)}>
-              <option value="">All Restaurants</option>
-              {restaurants.map((r) => <option key={r._id} value={r._id}>{r.name}</option>)}
+              <option value="" className="text-dark">All Restaurants</option>
+              {restaurants.map((r) => <option key={r._id} value={r._id} className="text-dark">{r.name}</option>)}
             </select>
           </div>
         </div>
@@ -183,7 +196,10 @@ export default function AdminProducts() {
                       <span className="fw-semibold text-body">{p.name}</span>
                     </div>
                   </td>
-                  <td><span className="text-muted">{p.restaurant?.name || "Unassigned"}</span></td>
+                  
+                  
+                  <td><span className="text-muted fw-medium">{getRestName(p.restaurant) || "Unassigned"}</span></td>
+                  
                   <td><span className="badge bg-secondary bg-opacity-10 text-body border border-secondary border-opacity-25">{p.category}</span></td>
                   <td className="fw-bold text-danger">₹{p.price}</td>
                   <td>
@@ -208,7 +224,6 @@ export default function AdminProducts() {
         <>
           <div className="modal show d-block" style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(3px)" }}>
             <div className="modal-dialog modal-dialog-centered">
-              {/* bg-body-tertiary fixes the blinding white box in dark mode! */}
               <form className="modal-content bg-body-tertiary border-0 shadow-lg rounded-4" onSubmit={handleSubmit}>
                 <div className="modal-header border-bottom border-secondary border-opacity-25">
                   <h5 className="fw-bold mb-0 text-body">{editing ? "✏️ Edit Product" : "✨ Add Product"}</h5>

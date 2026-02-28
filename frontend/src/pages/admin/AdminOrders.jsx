@@ -1,265 +1,309 @@
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
 
-export default function AdminProducts() {
-  const [products, setProducts] = useState([]);
-  const [restaurants, setRestaurants] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [search, setSearch] = useState("");
-  const [restaurantFilter, setRestaurantFilter] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [editing, setEditing] = useState(null);
+export default function AdminOrders() {
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+    
+    // SaaS Features State
+    const [search, setSearch] = useState("");
+    const [statusFilter, setStatusFilter] = useState("");
+    const [updatingId, setUpdatingId] = useState(null); // Targeted loading state
+    const [viewingOrder, setViewingOrder] = useState(null); // For the details modal
 
-  const [form, setForm] = useState({ 
-      name: "", 
-      price: "", 
-      category: "", 
-      restaurant: "", 
-      image: "", 
-      available: true 
-  });
+    useEffect(() => {
+        loadOrders();
+    }, []);
 
-  useEffect(() => {
-    fetchProducts();
-    fetchRestaurants();
-  }, []);
+    const loadOrders = async () => {
+        try {
+            const res = await api.get("/admin/orders");
+            // Sort so the newest orders are always at the top!
+            const sortedOrders = res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            setOrders(sortedOrders);
+        } catch (err) {
+            console.error("Failed to load orders", err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  async function fetchProducts() {
-    try {
-      
-      const res = await api.get("/products");
-      setProducts(res.data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }
+    const updateOrderStatus = async (orderId, newStatus) => {
+        try {
+            setUpdatingId(orderId);
+            await api.patch(`/orders/${orderId}/status`, { status: newStatus });
+            await loadOrders(); 
+        } catch (err) {
+            console.error("Failed to update order status", err);
+            alert(err.response?.data?.message || "Could not update status. Check console.");
+        } finally {
+            setUpdatingId(null);
+        }
+    };
 
-  async function fetchRestaurants() {
-    try {
-      const res = await api.get("/restaurants");
-      setRestaurants(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  }
+    const getStatusBadge = (status) => {
+        switch (status?.toLowerCase()) {
+            case 'delivered': 
+                return 'bg-success bg-opacity-10 text-success border border-success border-opacity-25';
+            case 'cancelled': 
+                return 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25';
+            case 'preparing': 
+                return 'bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25';
+            case 'out for delivery': 
+                return 'bg-info bg-opacity-10 text-info border border-info border-opacity-25';
+            default: 
+                return 'bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25'; 
+        }
+    };
 
-  function openCreate() {
-    setEditing(null);
-    setForm({ name: "", price: "", category: "", restaurant: "", image: "", available: true });
-    setShowModal(true);
-  }
-
-  function openEdit(product) {
-    setEditing(product);
-    setForm({
-      name: product.name || "",
-      price: product.price || "",
-      category: product.category || "",
-      restaurant: product.restaurant?._id || "",
-      image: product.image || "",
-      available: product.available ?? true,
+    // Filter Logic
+    const filteredOrders = orders.filter(o => {
+        const matchesSearch = 
+            (o.customer?.name || "").toLowerCase().includes(search.toLowerCase()) || 
+            (o._id || "").toLowerCase().includes(search.toLowerCase());
+        const matchesStatus = statusFilter ? o.status === statusFilter : true;
+        return matchesSearch && matchesStatus;
     });
-    setShowModal(true);
-  }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    try {
-      if (editing) {
-          await api.patch(`/products/${editing._id}`, form);
-      } else {
-          await api.post("/products", form);
-      }
-      setShowModal(false);
-      fetchProducts();
-    } catch (err) {
-      console.error("Save failed:", err);
-      
-      alert(err.response?.data?.message || "Failed to save product. Check your backend routes!");
-    }
-  }
+    // Quick Metrics
+    const totalRevenue = orders.filter(o => o.status === 'delivered').reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+    const pendingCount = orders.filter(o => o.status === 'pending' || o.status === 'preparing').length;
 
-  async function handleDelete(id) {
-    if (!window.confirm("Delete this product?")) return;
-    try {
-      await api.delete(`/products/${id}`);
-      fetchProducts();
-    } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || "Delete failed");
-    }
-  }
-
-  async function toggleAvailability(product) {
-    try {
-      await api.patch(`/products/${product._id}`, {
-        ...product,
-        available: !product.available,
-        restaurant: product.restaurant?._id,
-      });
-      fetchProducts();
-    } catch (err) {
-      console.error(err);
-      alert("Failed to toggle availability");
-    }
-  }
-
-  async function uploadImage(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploading(true);
-    const data = new FormData();
-    data.append("file", file);
-    data.append("upload_preset", "fooddash");
-    try {
-      const res = await fetch("https://api.cloudinary.com/v1_1/dcl5zom8v/image/upload", { method: "POST", body: data });
-      const json = await res.json();
-      setForm({ ...form, image: json.secure_url });
-    } catch (err) {
-      console.error(err);
-      alert("Image upload failed");
-    } finally {
-        setUploading(false);
-    }
-  }
-
-  const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) && (!restaurantFilter || p.restaurant?._id === restaurantFilter)
-  );
-
-  if (loading) return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "50vh" }}>
-          <div className="spinner-border text-danger" />
-      </div>
-  );
-
-  return (
-    <div className="container-fluid py-4">
-      {/* HEADER */}
-      <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
-        <h3 className="fw-bold mb-0 text-body">🍔 Product Management</h3>
-        <button className="btn btn-danger rounded-pill px-4 shadow-sm fw-bold" onClick={openCreate}>+ Add Product</button>
-      </div>
-
-      {/* FILTERS */}
-      <div className="card bg-body-tertiary border-0 shadow-sm rounded-4 p-3 mb-4">
-        <div className="row g-3">
-          <div className="col-md-6">
-            <input className="form-control shadow-none" placeholder="🔍 Search products..." value={search} onChange={(e) => setSearch(e.target.value)} />
-          </div>
-          <div className="col-md-6">
-            <select className="form-select shadow-none" value={restaurantFilter} onChange={(e) => setRestaurantFilter(e.target.value)}>
-              <option value="">All Restaurants</option>
-              {restaurants.map((r) => <option key={r._id} value={r._id}>{r.name}</option>)}
-            </select>
-          </div>
+    if (loading) return (
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "50vh" }}>
+            <div className="spinner-border text-danger" />
         </div>
-      </div>
+    );
 
-      {/* TABLE */}
-      <div className="card bg-body-tertiary border-0 shadow-sm rounded-4 overflow-hidden">
-        <div className="table-responsive">
-          <table className="table table-borderless table-hover align-middle mb-0 bg-transparent">
-            <thead className="border-bottom">
-              <tr>
-                <th className="py-3 px-4 text-body">Item</th>
-                <th className="text-body">Restaurant</th>
-                <th className="text-body">Category</th>
-                <th className="text-body">Price</th>
-                <th className="text-body">Status</th>
-                <th className="text-end px-4 text-body">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((p) => (
-                <tr key={p._id} className="border-bottom">
-                  <td className="py-3 px-4">
-                    <div className="d-flex align-items-center">
-                      <img src={p.image || "https://via.placeholder.com/48"} width="48" height="48" className="rounded-3 me-3 shadow-sm" style={{objectFit: "cover"}} alt="" />
-                      <span className="fw-semibold text-body">{p.name}</span>
-                    </div>
-                  </td>
-                  <td><span className="text-muted">{p.restaurant?.name || "Unassigned"}</span></td>
-                  <td><span className="badge bg-secondary bg-opacity-10 text-body border">{p.category}</span></td>
-                  <td className="fw-bold text-danger">₹{p.price}</td>
-                  <td>
-                    <span className={`badge ${p.available ? "bg-success bg-opacity-10 text-success border border-success border-opacity-25" : "bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25"}`}>
-                      {p.available ? "Available" : "Unavailable"}
-                    </span>
-                  </td>
-                  <td className="text-end px-4">
-                    <button className="btn btn-sm btn-light border rounded-pill px-3 me-2 shadow-sm" onClick={() => toggleAvailability(p)}>Toggle</button>
-                    <button className="btn btn-sm btn-outline-primary rounded-pill px-3 me-2" onClick={() => openEdit(p)}>Edit</button>
-                    <button className="btn btn-sm btn-outline-danger rounded-pill px-3" onClick={() => handleDelete(p._id)}>Delete</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* THEME-AWARE MODAL */}
-      {showModal && (
-        <>
-          <div className="modal show d-block" style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(3px)" }}>
-            <div className="modal-dialog modal-dialog-centered">
-              
-              <form className="modal-content bg-body-tertiary border-0 shadow-lg rounded-4" onSubmit={handleSubmit}>
-                <div className="modal-header border-bottom border-secondary border-opacity-25">
-                  <h5 className="fw-bold mb-0 text-body">{editing ? "✏️ Edit Product" : "✨ Add Product"}</h5>
-                  
-                  <button type="button" className="btn-close" onClick={() => setShowModal(false)} />
-                </div>
-                
-                <div className="modal-body p-4">
-                  <label className="form-label fw-semibold small text-body">Product Name</label>
-                  <input className="form-control shadow-none mb-3" value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} required />
-                  
-                  <div className="row g-3 mb-3">
-                    <div className="col-6">
-                      <label className="form-label fw-semibold small text-body">Price (₹)</label>
-                      <input type="number" className="form-control shadow-none" value={form.price} onChange={(e) => setForm({...form, price: e.target.value})} required />
-                    </div>
-                    <div className="col-6">
-                      <label className="form-label fw-semibold small text-body">Category</label>
-                      <input className="form-control shadow-none" value={form.category} onChange={(e) => setForm({...form, category: e.target.value})} />
-                    </div>
-                  </div>
-
-                  <label className="form-label fw-semibold small text-body">Assign to Restaurant</label>
-                  <select className="form-select shadow-none mb-3" value={form.restaurant} onChange={(e) => setForm({...form, restaurant: e.target.value})} required>
-                    <option value="">Select restaurant...</option>
-                    {restaurants.map((r) => <option key={r._id} value={r._id}>{r.name}</option>)}
-                  </select>
-
-                  <label className="form-label fw-semibold small text-body">Product Image</label>
-                  <input type="file" className="form-control shadow-none mb-2" onChange={uploadImage} />
-                  
-                  {uploading && <div className="text-primary fw-medium small mb-2">Uploading to secure cloud...</div>}
-                  {form.image && <img src={form.image} width="100" className="rounded-3 shadow-sm mt-2 mb-3" alt="Preview" />}
-
-                  <div className="form-check form-switch mt-3">
-                    <input type="checkbox" className="form-check-input" checked={form.available} onChange={(e) => setForm({...form, available: e.target.checked})} />
-                    <label className="form-check-label ms-2 fw-medium text-body">Available for ordering</label>
-                  </div>
-                </div>
-                
-                <div className="modal-footer border-top border-secondary border-opacity-25">
-                  <button type="button" className="btn btn-light border rounded-pill px-4" onClick={() => setShowModal(false)}>Cancel</button>
-                  
-                  <button type="submit" className="btn btn-danger rounded-pill px-4 fw-bold shadow-sm" disabled={uploading}>
-                      {uploading ? "Wait..." : "Save Product"}
-                  </button>
-                </div>
-              </form>
+    return (
+        <div className="container-fluid py-4">
+            
+            {/* HEADER */}
+            <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                <h3 className="fw-bold mb-0 text-body">🛵 Order Management</h3>
+                <button className="btn btn-light border rounded-pill px-4 shadow-sm fw-bold" onClick={loadOrders}>
+                    ↻ Refresh Orders
+                </button>
             </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
+
+            {/* QUICK METRICS */}
+            <div className="row g-3 mb-4">
+                <div className="col-md-4">
+                    <div className="card bg-body-tertiary border-0 shadow-sm rounded-4 p-3 d-flex flex-row align-items-center">
+                        <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center me-3" style={{width: "50px", height: "50px", fontSize: "20px"}}>📦</div>
+                        <div>
+                            <p className="text-muted mb-0 fw-semibold small">Total Orders</p>
+                            <h4 className="fw-bold m-0 text-body">{orders.length}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div className="col-md-4">
+                    <div className="card bg-body-tertiary border-0 shadow-sm rounded-4 p-3 d-flex flex-row align-items-center">
+                        <div className="bg-warning bg-opacity-10 text-warning rounded-circle d-flex justify-content-center align-items-center me-3" style={{width: "50px", height: "50px", fontSize: "20px"}}>⏳</div>
+                        <div>
+                            <p className="text-muted mb-0 fw-semibold small">Active / Pending</p>
+                            <h4 className="fw-bold m-0 text-body">{pendingCount}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div className="col-md-4">
+                    <div className="card bg-body-tertiary border-0 shadow-sm rounded-4 p-3 d-flex flex-row align-items-center">
+                        <div className="bg-success bg-opacity-10 text-success rounded-circle d-flex justify-content-center align-items-center me-3" style={{width: "50px", height: "50px", fontSize: "20px"}}>₹</div>
+                        <div>
+                            <p className="text-muted mb-0 fw-semibold small">Delivered Revenue</p>
+                            <h4 className="fw-bold m-0 text-success">₹{totalRevenue}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* SEARCH & FILTERS */}
+            <div className="card bg-body-tertiary border-0 shadow-sm rounded-4 p-3 mb-4">
+                <div className="row g-3">
+                    <div className="col-md-8">
+                        <input
+                            className="form-control form-control-lg shadow-none bg-transparent text-body border-secondary border-opacity-25"
+                            placeholder="🔍 Search by Order ID or Customer Name..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </div>
+                    <div className="col-md-4">
+                        <select
+                            className="form-select form-select-lg shadow-none bg-transparent text-body border-secondary border-opacity-25"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                            <option value="" className="text-dark">All Statuses</option>
+                            <option value="pending" className="text-dark">Pending</option>
+                            <option value="preparing" className="text-dark">Preparing</option>
+                            <option value="out for delivery" className="text-dark">Out for Delivery</option>
+                            <option value="delivered" className="text-dark">Delivered</option>
+                            <option value="cancelled" className="text-dark">Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {/* TABLE */}
+            <div className="card bg-body-tertiary border-0 shadow-sm rounded-4 overflow-hidden">
+                <div className="table-responsive">
+                    <table className="table table-borderless table-hover align-middle mb-0 bg-transparent">
+                        <thead className="border-bottom border-secondary border-opacity-25">
+                            <tr>
+                                <th className="py-3 px-4 text-body">Order ID</th>
+                                <th className="text-body">Date & Time</th>
+                                <th className="text-body">Customer</th>
+                                <th className="text-body">Restaurant</th>
+                                <th className="text-body">Total</th>
+                                <th className="text-body">Status</th>
+                                <th className="text-end px-4 text-body">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredOrders.length === 0 && (
+                                <tr>
+                                    <td colSpan="7" className="text-center py-5 text-muted">
+                                        No orders found matching your criteria.
+                                    </td>
+                                </tr>
+                            )}
+                            {filteredOrders.map(o => (
+                                <tr key={o._id} className="border-bottom border-secondary border-opacity-10">
+                                    <td className="py-3 px-4 fw-bold font-monospace text-body">
+                                        #{o._id.slice(-6).toUpperCase()}
+                                    </td>
+                                    
+                                    <td>
+                                        <div className="d-flex flex-column">
+                                            <span className="text-body fw-medium">
+                                                {o.createdAt ? new Date(o.createdAt).toLocaleDateString() : 'N/A'}
+                                            </span>
+                                            <span className="text-muted small">
+                                                {o.createdAt ? new Date(o.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    
+                                    <td><span className="fw-semibold text-body">{o.user?.name || "Guest"}</span></td>
+                                    
+                                    <td><span className="text-muted fw-medium">{o.restaurant?.name || "Unknown"}</span></td>
+                                    
+                                    <td className="fw-bold text-danger">₹{o.totalPrice || 0}</td>
+                                    
+                                    <td>
+                                        <span className={`badge rounded-pill text-capitalize px-3 py-2 ${getStatusBadge(o.status)}`}>
+                                            {o.status || "pending"}
+                                        </span>
+                                    </td>
+
+                                    <td className="text-end px-4">
+                                        {updatingId === o._id ? (
+                                            <span className="spinner-border spinner-border-sm text-danger me-4" />
+                                        ) : (
+                                            <div className="d-flex justify-content-end gap-2">
+                                                {/* VIEW DETAILS BUTTON */}
+                                                <button 
+                                                    className="btn btn-sm btn-light border rounded-pill px-3 shadow-sm text-primary fw-medium"
+                                                    onClick={() => setViewingOrder(o)}
+                                                >
+                                                    👁️ Details
+                                                </button>
+
+                                                <div className="dropdown">
+                                                    <button className="btn btn-sm btn-outline-secondary rounded-pill px-3 dropdown-toggle shadow-sm fw-medium" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        Status
+                                                    </button>
+                                                    <ul className="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2 rounded-4 p-2 bg-body-tertiary">
+                                                        <li><button className="dropdown-item py-2 rounded-3 fw-medium text-body" onClick={() => updateOrderStatus(o._id, 'preparing')}>👨‍🍳 Preparing</button></li>
+                                                        <li><button className="dropdown-item py-2 rounded-3 fw-medium text-body" onClick={() => updateOrderStatus(o._id, 'on_the_way')}>🛵 Out for Delivery</button></li>
+                                                        <li><button className="dropdown-item py-2 rounded-3 fw-medium text-success" onClick={() => updateOrderStatus(o._id, 'delivered')}>✅ Delivered</button></li>
+                                                        <li><hr className="dropdown-divider my-2 border-secondary opacity-25" /></li>
+                                                        <li><button className="dropdown-item py-2 rounded-3 fw-medium text-danger" onClick={() => updateOrderStatus(o._id, 'cancelled')}>❌ Cancel</button></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* ORDER DETAILS MODAL */}
+            {viewingOrder && (
+                <div className="modal show d-block" style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(3px)" }}>
+                    <div className="modal-dialog modal-dialog-centered modal-lg">
+                        <div className="modal-content bg-body-tertiary border-0 shadow-lg rounded-4">
+                            
+                            <div className="modal-header border-bottom border-secondary border-opacity-25 py-3 px-4">
+                                <div>
+                                    <h5 className="fw-bold mb-1 text-body">Order #{viewingOrder._id.slice(-6).toUpperCase()}</h5>
+                                    <span className="text-muted small">Placed on {new Date(viewingOrder.createdAt).toLocaleString()}</span>
+                                </div>
+                                <button type="button" className="btn-close" onClick={() => setViewingOrder(null)} />
+                            </div>
+                            
+                            <div className="modal-body p-4">
+                                <div className="row g-4">
+                                    {/* Left Column: Items */}
+                                    <div className="col-md-7">
+                                        <h6 className="fw-bold text-body mb-3">Order Items</h6>
+                                        <div className="card border-0 bg-transparent">
+                                            <ul className="list-group list-group-flush border-top border-bottom border-secondary border-opacity-25">
+                                                {viewingOrder.items?.map((item, idx) => (
+                                                    <li key={idx} className="list-group-item bg-transparent px-0 py-3 d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <h6 className="fw-semibold text-body mb-0">{item.name}</h6>
+                                                            <small className="text-muted">₹{item.price} x {item.quantity}</small>
+                                                        </div>
+                                                        <span className="fw-bold text-body">₹{item.price * item.quantity}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            <div className="d-flex justify-content-between align-items-center mt-3 px-2">
+                                                <h6 className="fw-bold text-muted m-0">Grand Total</h6>
+                                                <h5 className="fw-bold text-danger m-0">₹{viewingOrder.totalPrice}</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Right Column: Delivery Info */}
+                                    <div className="col-md-5">
+                                        <h6 className="fw-bold text-body mb-3">Delivery Information</h6>
+                                        <div className="card border border-secondary border-opacity-25 bg-transparent rounded-4 p-3 mb-3">
+                                            <p className="text-body fw-medium mb-1">👤 {viewingOrder.customer?.name || "Guest Customer"}</p>
+                                            <p className="text-muted small mb-3">📧 {viewingOrder.customer?.email || "No email"}</p>
+                                            
+                                            <p className="text-body fw-medium mb-1">📞 Phone Number</p>
+                                            <p className="text-muted small mb-3">{viewingOrder.phone || "Not provided"}</p>
+                                            
+                                            <p className="text-body fw-medium mb-1">📍 Delivery Address</p>
+                                            <p className="text-muted small mb-0">{viewingOrder.deliveryAddress || "No address provided"}</p>
+                                        </div>
+
+                                        <div className="d-flex align-items-center justify-content-between card border border-secondary border-opacity-25 bg-transparent rounded-4 p-3">
+                                            <div>
+                                                <h6 className="fw-bold text-body mb-0">Payment</h6>
+                                                <small className="text-muted text-uppercase">{viewingOrder.paymentMethod || "COD"}</small>
+                                            </div>
+                                            <span className={`badge ${viewingOrder.paymentStatus === 'paid' ? 'bg-success' : 'bg-warning'} bg-opacity-10 text-${viewingOrder.paymentStatus === 'paid' ? 'success' : 'warning'} px-3 py-2 rounded-pill`}>
+                                                {viewingOrder.paymentStatus || 'pending'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="modal-footer border-top border-secondary border-opacity-25">
+                                <button type="button" className="btn btn-light border rounded-pill px-4 fw-medium shadow-sm" onClick={() => setViewingOrder(null)}>Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 }
