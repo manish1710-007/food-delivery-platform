@@ -14,7 +14,7 @@ exports.getCart = async (req, res) => {
       return {
         _id: item._id,
         productId: item.product._id,
-        name: item.product.price,
+        name: item.product.name,
         price: item.product.price,
         quantity: item.quantity,
         restaurant: item.product.restaurant, // Include restaurant reference

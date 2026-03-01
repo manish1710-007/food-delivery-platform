@@ -52,9 +52,18 @@ const checkoutFromCart = async (req, res, next) => {
       return res.status(400).json({ message: 'Cart is empty' });
     }
 
+    // Filter out "ghost" items
+    const validItems = cart.items.filter(item => item.product != null);
+
+    if (validItems.length === 0){
+      cart.items = [];
+      await cart.save();
+      return res.status(400).json({ message: 'The items in your cart are no longer available on the menu.'});
+    }
+
     let totalPrice = 0;
 
-    const orderItems = cart.items.map(item => {
+    const orderItems = validItems.map(item => {
       const lineTotal = item.product.price * item.quantity;
       totalPrice += lineTotal;
 
