@@ -16,7 +16,7 @@ export default function Cart() {
       const res = await api.get("/orders/cart");
       setCart(res.data.items ?? []);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to load cart");
+      setError(err.response?.data?.message || "SYS_ERR: FAILED_TO_MOUNT_CART");
     } finally {
       setLoading(false);
     }
@@ -25,7 +25,7 @@ export default function Cart() {
   useEffect(() => { fetchCart(); }, []);
 
   const checkout = async () => {
-    if (cart.length === 0) return alert("Your cart is empty!");
+    if (cart.length === 0) return alert("SYS_HALT: CART_EMPTY");
     navigate("/checkout");
   };
 
@@ -36,7 +36,7 @@ export default function Cart() {
       setCart((prev) => prev.filter((item) => item._id !== id));
       fetchCartCount();
     } catch {
-      alert("Failed to remove item");
+      alert("SYS_ERR: FAILED_TO_TERMINATE_PROCESS");
     } finally {
       setRemovingId(null);
     }
@@ -49,27 +49,40 @@ export default function Cart() {
   const foodEmojis = ["🍔", "🍕", "🌮", "🍜", "🍱", "🥗", "🍛", "🌯"];
   const getEmoji = (name = "") => foodEmojis[name.charCodeAt(0) % foodEmojis.length];
 
-  /*  Loading  */
+  // Generate some fake hex code for the aesthetic sidebar
+  const fakeHexDump = Array.from({ length: 8 }).map((_, i) => {
+    const addr = (0x00400000 + i * 16).toString(16).toUpperCase().padStart(8, '0');
+    const hex = Array.from({ length: 8 }).map(() => Math.floor(Math.random() * 256).toString(16).padStart(2, '0').toUpperCase()).join(' ');
+    return `${addr}  ${hex}`;
+  });
+
+  /* Loading  */
   if (loading) {
     return (
       <>
         <style>{styles}</style>
-        <div className="d-flex flex-column align-items-center justify-content-center cart-loading gap-3">
-          <div className="cart-spinner" />
-          <p className="mb-0 small cart-muted">Loading your cart…</p>
+        <div className="y2k-page d-flex flex-column align-items-center justify-content-center min-vh-100">
+          <div className="y2k-wire-box p-4 text-center" style={{ width: "320px" }}>
+            <div className="mb-3 text-cyan">FETCHING_DATA_PACKETS... <span className="blink">_</span></div>
+            <div className="y2k-progress-bar">
+              <div className="y2k-progress-fill" style={{ animationDuration: '2s' }}></div>
+            </div>
+          </div>
         </div>
       </>
     );
   }
 
-  /*  Error  */
+  /* Error  */
   if (error) {
     return (
       <>
         <style>{styles}</style>
-        <div className="d-flex flex-column align-items-center justify-content-center gap-2 cart-error-screen">
-          <span style={{ fontSize: "2rem" }}>⚠️</span>
-          <p className="mb-0 small fw-semibold">{error}</p>
+        <div className="y2k-page d-flex flex-column align-items-center justify-content-center min-vh-100">
+          <div className="y2k-wire-box border-magenta p-4 text-center">
+            <span className="text-magenta d-block mb-2" style={{ fontSize: "2rem" }}>[ ! ]</span>
+            <p className="mb-0 text-magenta font-monospace">{error}</p>
+          </div>
         </div>
       </>
     );
@@ -78,124 +91,172 @@ export default function Cart() {
   return (
     <>
       <style>{styles}</style>
-      <div className="cart-page">
-        <div className="container" style={{ maxWidth: 1040 }}>
+      <div className="y2k-page pb-5">
+        {/* Blueprint Grid & Scanlines */}
+        <div className="y2k-grid-bg"></div>
+        <div className="scanlines"></div>
 
-          {/* Header*/}
-          <div className="d-flex align-items-center gap-3 mb-5">
-            <h1 className="cart-title mb-0">Your Cart</h1>
-            {cart.length > 0 && (
-              <span className="cart-badge badge rounded-pill text-uppercase">
-                {cart.length} item{cart.length > 1 ? "s" : ""}
-              </span>
-            )}
+        <div className="container-fluid px-3 px-xl-4 position-relative z-1 pt-4 w-100">
+
+          {/* Header */}
+          <div className="y2k-title-bar d-flex justify-content-between align-items-center mb-4 p-2">
+            <h1 className="y2k-title mb-0 fs-5 text-cyan d-flex align-items-center gap-2">
+              <span className="blink">_</span> C:\USER\SESSION\CART.exe
+            </h1>
+            <span className="text-muted d-none d-sm-block small">
+              [ STATUS: {cart.length > 0 ? 'ALLOCATED' : 'EMPTY'} ]
+            </span>
           </div>
 
           {cart.length === 0 ? (
-            /*  Empty state*/
-            <div className="empty-state text-center rounded-4 border py-5 px-4">
-              <div className="mb-3" style={{ fontSize: 64, filter: "grayscale(0.3)" }}>🛒</div>
-              <h2 className="empty-title mb-2">Nothing here yet</h2>
-              <p className="cart-muted mb-4">Add some delicious food to get started</p>
-              <Link to="/" className="browse-btn d-inline-flex align-items-center gap-2 text-decoration-none rounded-3 px-4 py-3 fw-bold">
-                Browse Restaurants
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
+            /* Empty state */
+            <div className="y2k-wire-box text-center p-5 mt-4 mx-auto" style={{ maxWidth: "600px" }}>
+              <div className="mb-3 text-muted" style={{ fontSize: 48 }}>[ 0_BYTES ]</div>
+              <h2 className="text-cyan mb-2 fs-4">DIR_EMPTY</h2>
+              <p className="text-muted mb-4 small">NO_EXECUTABLES_FOUND_IN_CART</p>
+              <Link to="/" className="y2k-btn-magenta text-decoration-none d-inline-block px-4 py-2">
+                [ RUN: BROWSE_HOSTS ]
               </Link>
             </div>
 
           ) : (
-            /* Cart layout*/
+            /* Layout Grid Shifted to 5 - 4 - 3 for better breathing room */
             <div className="row g-4 align-items-start">
 
-              {/* Left — Items */}
-              <div className="col-lg-8">
-                <p className="panel-label text-uppercase mb-2">Order Items</p>
+              {/* COL 1: Items List (col-xl-5) */}
+              <div className="col-12 col-xl-5">
+                <div className="d-flex justify-content-between border-bottom-wire pb-2 mb-3">
+                  <span className="text-cyan small">/// ALLOCATED_RESOURCES</span>
+                  <span className="text-cyan small">COUNT: {cart.length}</span>
+                </div>
 
-                <div className="items-list rounded-4 overflow-hidden border">
-                  {cart.map((item, index) => (
+                <div className="d-flex flex-column gap-3">
+                  {cart.map((item) => (
                     <div
                       key={item._id}
-                      className={`cart-item d-flex align-items-center gap-3 px-4 py-3 ${removingId === item._id ? "removing" : ""}`}
-                      style={{ animationDelay: `${index * 60}ms` }}
+                      className={`y2k-wire-box p-3 d-flex flex-column flex-sm-row align-items-sm-center gap-3 ${removingId === item._id ? "opacity-50" : ""}`}
                     >
-                      {/* Emoji tile */}
-                      <div className="item-emoji d-flex align-items-center justify-content-center rounded-3 flex-shrink-0">
-                        {getEmoji(item.name)}
-                      </div>
+                      <div className="d-flex align-items-center gap-3 w-100 text-start overflow-hidden">
+                        <div className="y2k-item-icon d-flex align-items-center justify-content-center flex-shrink-0 border-cyan text-cyan">
+                          {getEmoji(item.name)}
+                        </div>
+                        
+                        <div className="flex-grow-1 overflow-hidden pe-2">
+                          <div className="text-muted small mb-1">ID: {item._id.slice(-6).toUpperCase()}</div>
+                          <div className="text-main fw-bold text-truncate" style={{ fontSize: "1.1rem" }}>{item.name.toUpperCase()}</div>
+                          <div className="text-cyan small mt-1">INR {item.price} × {item.quantity} UNIT(S)</div>
+                        </div>
 
-                      {/* Name + meta */}
-                      <div className="flex-grow-1 overflow-hidden">
-                        <div className="item-name fw-semibold text-truncate">{item.name}</div>
-                        <div className="item-meta small">₹{item.price} × {item.quantity}</div>
-                      </div>
-
-                      {/* Price + remove */}
-                      <div className="d-flex flex-column align-items-end gap-2 flex-shrink-0">
-                        <span className="item-total fw-bold">₹{item.price * item.quantity}</span>
-                        <button
-                          className="remove-btn btn btn-sm rounded-pill px-3 text-uppercase fw-semibold"
-                          onClick={() => removeItem(item._id)}
-                          disabled={removingId === item._id}
-                        >
-                          {removingId === item._id ? "…" : "Remove"}
-                        </button>
+                        <div className="d-flex flex-column align-items-end flex-shrink-0 gap-2 ms-auto">
+                          <span className="text-magenta fw-bold fs-5 text-nowrap">INR {item.price * item.quantity}</span>
+                          <button
+                            className="y2k-btn-outline text-muted text-nowrap"
+                            onClick={() => removeItem(item._id)}
+                            disabled={removingId === item._id}
+                          >
+                            {removingId === item._id ? "[ ... ]" : "[ DEL ]"}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Right — Summary */}
-              <div className="col-lg-4">
-                <div className="position-sticky" style={{ top: 24 }}>
-                  <p className="panel-label text-uppercase mb-2">Order Summary</p>
+              {/* COL 2: Transaction Log & Checkout Button (Widened to col-xl-4) */}
+              <div className="col-12 col-lg-6 col-xl-4">
+                <div className="position-sticky" style={{ top: "80px" }}>
+                  <div className="d-flex justify-content-between border-bottom-wire border-magenta pb-2 mb-3">
+                    <span className="text-magenta small">/// TRANSACTION_LOG</span>
+                  </div>
 
-                  <div className="summary-card rounded-4 border p-4">
-
-                    {/* Fee rows */}
-                    <div className="d-flex flex-column gap-3 mb-3">
-                      <div className="d-flex justify-content-between align-items-center summary-row">
-                        <span>Item Total</span>
-                        <span className="fw-semibold">₹{itemTotal}</span>
+                  <div className="y2k-wire-box border-magenta p-3 p-xl-4 text-start overflow-hidden">
+                    
+                    <div className="d-flex flex-column gap-3 mb-4 small font-monospace">
+                      {/* Flex safeguard: text-truncate on left, flex-shrink-0 text-nowrap on right */}
+                      <div className="d-flex justify-content-between align-items-center w-100 text-muted">
+                        <span className="text-truncate pe-2">&gt; SUBTOTAL</span>
+                        <span className="text-nowrap flex-shrink-0 text-end">INR {itemTotal}</span>
                       </div>
-                      <div className="d-flex justify-content-between align-items-center summary-row">
-                        <span>Delivery Fee</span>
-                        <span className="fw-semibold fee-positive">+ ₹{deliveryFee}</span>
+                      <div className="d-flex justify-content-between align-items-center w-100 text-muted">
+                        <span className="text-truncate pe-2">&gt; TRANSPORT_FEE</span>
+                        <span className="text-cyan text-nowrap flex-shrink-0 text-end">+ INR {deliveryFee}</span>
                       </div>
-                      <div className="d-flex justify-content-between align-items-center summary-row">
-                        <span>Platform Fee</span>
-                        <span className="fw-semibold fee-free">Free</span>
+                      <div className="d-flex justify-content-between align-items-center w-100 text-muted">
+                        <span className="text-truncate pe-2">&gt; PLATFORM_TAX</span>
+                        <span className="text-cyan text-nowrap flex-shrink-0 text-end">[ BYPASSED ]</span>
                       </div>
                     </div>
 
-                    <hr className="summary-divider my-0 mb-3" />
+                    <div className="border-bottom-wire border-magenta mb-3"></div>
 
                     {/* Grand total */}
-                    <div className="d-flex justify-content-between align-items-center mb-4">
-                      <span className="summary-total-label fw-bold">Grand Total</span>
-                      <span className="total-amount">₹{grandTotal}</span>
+                    <div className="d-flex justify-content-between align-items-end mb-4">
+                      <span className="text-magenta fs-6 text-nowrap pe-2">SYS_TOTAL</span>
+                      <span className="text-magenta fs-2 fw-bold lh-1 text-nowrap text-end flex-shrink-0">INR {grandTotal}</span>
                     </div>
 
-                    {/* CTA */}
+                    {/* MASSIVE CHECKOUT BUTTON with Clamp Font Size */}
                     <button
-                      className="checkout-btn btn w-100 d-flex align-items-center justify-content-center gap-2 rounded-3 fw-bold"
+                      className="y2k-btn-checkout w-100 mb-4 d-flex justify-content-center align-items-center"
                       onClick={checkout}
                     >
-                      Proceed to Checkout
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path d="M5 12h14M12 5l7 7-7 7"/>
-                      </svg>
+                      [ INITIATE_CHECKOUT ]
                     </button>
 
-                    {/* Secure note */}
-                    <div className="d-flex align-items-center justify-content-center gap-2 mt-3 secure-note">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                      </svg>
-                      Secure & encrypted checkout
+                    {/* Status Console below button */}
+                    <div className="y2k-console-output p-2 text-muted small font-monospace border-cyan" style={{ fontSize: "0.7rem", border: "1px dashed" }}>
+                      &gt; SECURE_TUNNEL: ESTABLISHED<br/>
+                      &gt; ENCRYPTION: AES-256-GCM<br/>
+                      &gt; PAYMENT_GATEWAY: STANDBY<br/>
+                      <span className="blink">_</span>
                     </div>
+
+                  </div>
+                </div>
+              </div>
+
+              {/* COL 3: System Diagnostics (col-xl-3) */}
+              <div className="col-12 col-lg-6 col-xl-3 d-none d-lg-block">
+                <div className="position-sticky" style={{ top: "80px" }}>
+                  <div className="d-flex justify-content-between border-bottom-wire pb-2 mb-3">
+                    <span className="text-cyan small">/// SYS_DIAGNOSTICS</span>
+                  </div>
+
+                  <div className="y2k-wire-box p-3 text-start h-100 d-flex flex-column gap-3">
+                    
+                    {/* Fake Memory Dump */}
+                    <div className="overflow-hidden">
+                      <div className="text-cyan mb-2 text-nowrap" style={{ fontSize: "0.7rem" }}>&gt; MEM_DUMP [CART_CACHE]</div>
+                      <div className="font-monospace text-muted text-nowrap overflow-hidden" style={{ fontSize: "0.65rem", lineHeight: "1.4", opacity: 0.7 }}>
+                        {fakeHexDump.map((line, idx) => (
+                          <div key={idx}>{line}</div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="border-bottom-wire border-cyan"></div>
+
+                    {/* Radar / Node connection visual */}
+                    <div>
+                      <div className="text-cyan mb-2" style={{ fontSize: "0.7rem" }}>&gt; ROUTING_PATH</div>
+                      <div className="position-relative border-cyan p-2 d-flex align-items-center justify-content-center" style={{ height: "120px", border: "1px solid" }}>
+                        <div className="crosshair-center"></div>
+                        <div className="y2k-radar-sweep"></div>
+                        <span className="text-magenta" style={{ fontSize: "0.7rem", position: "absolute", bottom: "5px", right: "5px" }}>TGT_LOCKED</span>
+                      </div>
+                    </div>
+
+                    <div className="border-bottom-wire border-cyan"></div>
+                    
+                    {/* Server Info */}
+                    <div className="text-muted text-uppercase" style={{ fontSize: "0.7rem" }}>
+                      HOST: LOCAL_MACHINE<br/>
+                      PORT: 5173<br/>
+                      LATENCY: 12ms<br/>
+                      PACKET_LOSS: 0.00%
+                    </div>
+
                   </div>
                 </div>
               </div>
@@ -209,274 +270,168 @@ export default function Cart() {
 }
 
 const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=DotGothic16&family=Share+Tech+Mono&display=swap');
 
-  /* ══════════════════════════════════
-     CSS VARIABLE TOKENS
-     ThemeToggle sets data-theme="dark"|"light" on <html>
-  ══════════════════════════════════ */
-  :root,
-  [data-theme="light"] {
-    --ct-bg-page:        #f7f6f3;
-    --ct-bg-card:        #ffffff;
-    --ct-bg-emoji:       #f5f3ef;
-    --ct-border:         #e8e6e1;
-    --ct-border-item:    #f0ede8;
-    --ct-text-primary:   #111111;
-    --ct-text-secondary: #555555;
-    --ct-text-muted:     #999999;
-    --ct-text-micro:     #aaaaaa;
-    --ct-badge-bg:       #111111;
-    --ct-badge-text:     #ffffff;
-    --ct-btn-bg:         #111111;
-    --ct-btn-text:       #ffffff;
-    --ct-green:          #2e7d32;
-    --ct-red:            #e53935;
-    --ct-red-dark:       #c0392b;
-    --ct-shadow-card:    0 2px 16px rgba(0,0,0,0.04);
-    --ct-shadow-btn:     0 4px 20px rgba(0,0,0,0.15);
-    --ct-shadow-btn-hv:  0 8px 28px rgba(229,57,53,0.3);
-    --ct-spinner-track:  #f0ede8;
-    --ct-item-hover:     #fafaf8;
-    --ct-remove-border:  #e0ddd8;
+  :root {
+    --bg-color: #02060d; 
+    --cyan: #00e5ff;
+    --cyan-dim: rgba(0, 229, 255, 0.2);
+    --cyan-glow: rgba(0, 229, 255, 0.5);
+    --magenta: #ff0055;
+    --magenta-dim: rgba(255, 0, 85, 0.2);
+    --text-main: #e0e6ed;
+    --text-muted: #5e7993;
+    --wire-border: 1px solid var(--cyan-glow);
   }
 
-  [data-theme="dark"] {
-    --ct-bg-page:        #0f0f0f;
-    --ct-bg-card:        #1a1a1a;
-    --ct-bg-emoji:       #252525;
-    --ct-border:         #2a2a2a;
-    --ct-border-item:    #222222;
-    --ct-text-primary:   #f0efe9;
-    --ct-text-secondary: #9a9a9a;
-    --ct-text-muted:     #666666;
-    --ct-text-micro:     #555555;
-    --ct-badge-bg:       #f0efe9;
-    --ct-badge-text:     #111111;
-    --ct-btn-bg:         #f0efe9;
-    --ct-btn-text:       #111111;
-    --ct-green:          #4caf50;
-    --ct-red:            #ef5350;
-    --ct-red-dark:       #e53935;
-    --ct-shadow-card:    0 2px 24px rgba(0,0,0,0.35);
-    --ct-shadow-btn:     0 4px 20px rgba(0,0,0,0.4);
-    --ct-shadow-btn-hv:  0 8px 28px rgba(239,83,80,0.35);
-    --ct-spinner-track:  #2a2a2a;
-    --ct-item-hover:     #202020;
-    --ct-remove-border:  #333333;
-  }
-
-  /* ── Page shell ── */
-  .cart-page {
+  /* BASE STYLES */
+  .y2k-page {
+    font-family: 'Share Tech Mono', monospace;
+    background-color: var(--bg-color);
     min-height: 100vh;
-    background: var(--ct-bg-page);
-    font-family: 'DM Sans', sans-serif;
-    padding: 48px 0 80px;
-    transition: background 0.2s;
+    color: var(--text-main);
+    position: relative;
+    overflow-x: hidden;
+    width: 100%;
   }
 
-  /* ── Header ── */
-  .cart-title {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(1.8rem, 4vw, 2.4rem);
-    font-weight: 800;
-    color: var(--ct-text-primary);
-    letter-spacing: -0.04em;
+  /* GRID & OVERLAYS */
+  .y2k-grid-bg {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background-image: linear-gradient(var(--cyan-dim) 1px, transparent 1px), linear-gradient(90deg, var(--cyan-dim) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 0; pointer-events: none; opacity: 0.5;
   }
 
-  .cart-badge {
-    background: var(--ct-badge-bg) !important;
-    color: var(--ct-badge-text) !important;
-    font-size: 0.68rem !important;
-    letter-spacing: 0.06em;
-    padding: 5px 12px !important;
+  .scanlines {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
+    background-size: 100% 4px; z-index: 9999; pointer-events: none; opacity: 0.6;
   }
 
-  /* ── Panel label ── */
-  .panel-label {
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: var(--ct-text-muted);
+  /* UTILS */
+  .text-cyan { color: var(--cyan) !important; }
+  .text-magenta { color: var(--magenta) !important; }
+  .text-main { color: var(--text-main) !important; }
+  .text-muted { color: var(--text-muted) !important; }
+  .border-cyan { border: 1px solid var(--cyan) !important; }
+  .border-magenta { border-color: var(--magenta) !important; border: 1px solid var(--magenta) !important; }
+  .border-bottom-wire { border-bottom: 1px dashed var(--cyan-glow); }
+  
+  .blink { animation: blinker 1s steps(2, start) infinite; }
+  @keyframes blinker { to { visibility: hidden; } }
+
+  /* WIREFRAME BOXES */
+  .y2k-wire-box {
+    background: rgba(2, 6, 13, 0.85);
+    backdrop-filter: blur(4px);
+    border: var(--wire-border);
+    position: relative;
+  }
+  .y2k-wire-box::before, .y2k-wire-box::after {
+    content: ''; position: absolute; width: 8px; height: 8px; 
+    border: 1px solid var(--cyan); pointer-events: none;
+  }
+  .y2k-wire-box::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .y2k-wire-box::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+  
+  .y2k-wire-box.border-magenta::before, .y2k-wire-box.border-magenta::after {
+    border-color: var(--magenta);
   }
 
-  /* ── Items list card ── */
-  .items-list {
-    background: var(--ct-bg-card);
-    border-color: var(--ct-border) !important;
-    box-shadow: var(--ct-shadow-card);
+  /* TYPOGRAPHY */
+  .y2k-title-bar {
+    background: rgba(0, 229, 255, 0.05);
+    border: var(--wire-border);
+    font-family: 'DotGothic16', sans-serif;
   }
 
-  /* ── Single cart row ── */
-  .cart-item {
-    border-bottom: 1px solid var(--ct-border-item);
-    transition: background 0.15s;
-    animation: slideIn 0.3s ease both;
-  }
-  .cart-item:last-child { border-bottom: none; }
-  .cart-item:hover { background: var(--ct-item-hover); }
-  .cart-item.removing { opacity: 0.4; pointer-events: none; transition: opacity 0.2s; }
-
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  /* Emoji tile */
-  .item-emoji {
-    width: 52px;
-    height: 52px;
-    background: var(--ct-bg-emoji);
-    font-size: 24px;
-  }
-
-  /* Item text */
-  .item-name {
-    font-size: 0.95rem;
-    color: var(--ct-text-primary);
-    line-height: 1.3;
-  }
-  .item-meta {
-    font-size: 0.8rem;
-    color: var(--ct-text-muted);
-  }
-
-  /* Item price */
-  .item-total {
-    font-family: 'Syne', sans-serif;
-    font-size: 1rem;
-    color: var(--ct-text-primary);
-  }
-
-  /* Remove button — extends Bootstrap .btn.btn-sm */
-  .remove-btn {
-    background: transparent !important;
-    border: 1px solid var(--ct-remove-border) !important;
-    color: var(--ct-red-dark) !important;
-    font-size: 0.68rem !important;
-    letter-spacing: 0.06em;
-    font-family: 'DM Sans', sans-serif;
-    transition: all 0.15s !important;
-  }
-  .remove-btn:hover:not(:disabled) {
-    background: var(--ct-red-dark) !important;
-    border-color: var(--ct-red-dark) !important;
-    color: #fff !important;
-  }
-
-  /* ── Summary card — extends Bootstrap .card ── */
-  .summary-card {
-    background: var(--ct-bg-card) !important;
-    border-color: var(--ct-border) !important;
-    box-shadow: var(--ct-shadow-card);
-  }
-
-  /* Fee rows */
-  .summary-row {
-    font-size: 0.9rem;
-    color: var(--ct-text-secondary);
-  }
-  .summary-row span:last-child { color: var(--ct-text-primary); }
-  .fee-positive { color: var(--ct-green) !important; }
-  .fee-free     { color: var(--ct-green) !important; }
-
-  /* Divider */
-  .summary-divider {
-    border-color: var(--ct-border-item) !important;
-    opacity: 1 !important;
-  }
-
-  /* Grand total label */
-  .summary-total-label {
-    font-family: 'Syne', sans-serif;
-    font-size: 1rem;
-    color: var(--ct-text-primary);
-  }
-
-  .total-amount {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.6rem;
-    font-weight: 800;
-    color: var(--ct-red);
-    letter-spacing: -0.03em;
-  }
-
-  /* Checkout CTA — extends Bootstrap .btn */
-  .checkout-btn {
-    background: var(--ct-btn-bg) !important;
-    color: var(--ct-btn-text) !important;
-    border: none !important;
-    padding: 15px 20px !important;
-    font-family: 'Syne', sans-serif !important;
-    font-size: 0.95rem !important;
-    letter-spacing: 0.01em;
-    box-shadow: var(--ct-shadow-btn);
-    transition: all 0.2s !important;
-  }
-  .checkout-btn:hover {
-    background: var(--ct-red) !important;
-    color: #fff !important;
-    transform: translateY(-1px);
-    box-shadow: var(--ct-shadow-btn-hv) !important;
-  }
-  .checkout-btn:active { transform: translateY(0) !important; }
-
-  /* Secure note */
-  .secure-note {
-    font-size: 0.75rem;
-    color: var(--ct-text-micro);
-  }
-
-  /* ── Empty state ── */
-  .empty-state {
-    background: var(--ct-bg-card) !important;
-    border-color: var(--ct-border) !important;
-  }
-  .empty-title {
-    font-family: 'Syne', sans-serif;
+  /* CART SPECIFIC */
+  .y2k-item-icon {
+    width: 60px; height: 60px;
+    background: rgba(0, 229, 255, 0.05);
     font-size: 1.8rem;
-    font-weight: 800;
-    color: var(--ct-text-primary);
-    letter-spacing: -0.03em;
+    box-shadow: inset 0 0 10px var(--cyan-dim);
   }
 
-  /* Browse button — standalone link-button */
-  .browse-btn {
-    background: var(--ct-btn-bg);
-    color: var(--ct-btn-text) !important;
-    font-family: 'Syne', sans-serif;
-    font-size: 0.9rem;
-    box-shadow: var(--ct-shadow-btn);
+  /* STANDARD BUTTONS */
+  .y2k-btn-outline {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: 'Share Tech Mono', monospace;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+  }
+  .y2k-btn-outline:hover { color: var(--magenta) !important; text-shadow: 0 0 5px var(--magenta); }
+
+  .y2k-btn-magenta {
+    background: transparent;
+    border: 1px solid var(--magenta);
+    color: var(--magenta);
+    cursor: pointer;
+    font-family: 'Share Tech Mono', monospace;
+    font-weight: bold;
     transition: all 0.2s;
   }
-  .browse-btn:hover {
-    background: var(--ct-red) !important;
-    color: #fff !important;
-    transform: translateY(-1px);
-    box-shadow: var(--ct-shadow-btn-hv);
+  .y2k-btn-magenta:hover {
+    background: var(--magenta);
+    color: #fff;
+    box-shadow: 0 0 15px var(--magenta-dim);
   }
 
-  /* ── Loading screen ── */
-  .cart-loading {
-    min-height: 60vh;
-    background: var(--ct-bg-page);
+  /* THE MASSIVE CHECKOUT BUTTON - Fixed for overflow */
+  .y2k-btn-checkout {
+    background: rgba(255, 0, 85, 0.1);
+    border: 2px solid var(--magenta);
+    color: var(--magenta);
+    font-family: 'Share Tech Mono', monospace;
+    
+    /* Responsive font scaling: Never gets bigger than 1.15rem, shrinks on narrow columns */
+    font-size: clamp(0.9rem, 1.8vw, 1.15rem); 
+    font-weight: bold;
+    padding: 14px 8px;
+    text-align: center;
+    text-shadow: 0 0 8px rgba(255, 0, 85, 0.8);
+    box-shadow: inset 0 0 15px rgba(255, 0, 85, 0.2);
+    transition: all 0.2s;
+    
+    /* Prevent text from wrapping or bleeding out */
+    white-space: nowrap;
+    overflow: hidden;
+    letter-spacing: 1px;
+    cursor: pointer;
   }
-  .cart-muted { color: var(--ct-text-muted); }
+  .y2k-btn-checkout:hover {
+    background: var(--magenta);
+    color: #fff;
+    text-shadow: none;
+    box-shadow: 0 0 25px rgba(255, 0, 85, 0.6);
+    transform: scale(1.02);
+  }
 
-  .cart-spinner {
-    width: 36px; height: 36px;
-    border: 3px solid var(--ct-spinner-track);
-    border-top-color: var(--ct-red);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  /* PROGRESS BAR & RADAR */
+  .y2k-progress-bar { width: 100%; height: 12px; border: 1px solid var(--cyan-glow); background: #000; padding: 2px; }
+  .y2k-progress-fill { height: 100%; background: var(--cyan); width: 0%; animation: load ease-out forwards; }
+  @keyframes load { to { width: 100%; } }
 
-  /* ── Error screen ── */
-  .cart-error-screen {
-    min-height: 50vh;
-    color: var(--ct-red-dark);
-    font-family: 'DM Sans', sans-serif;
-    background: var(--ct-bg-page);
+  .crosshair-center {
+    position: absolute; width: 40px; height: 40px;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    border: 1px solid var(--cyan-glow); z-index: 2; pointer-events: none;
   }
+  .crosshair-center::before { content: ''; position: absolute; top: 50%; left: -10px; right: -10px; height: 1px; background: var(--cyan-glow); }
+  .crosshair-center::after { content: ''; position: absolute; left: 50%; top: -10px; bottom: -10px; width: 1px; background: var(--cyan-glow); }
+  
+  .y2k-radar-sweep {
+    position: absolute; width: 100px; height: 100px;
+    border-radius: 50%; border: 1px dashed var(--cyan-dim);
+    animation: spin 4s linear infinite;
+  }
+  .y2k-radar-sweep::before {
+    content: ''; position: absolute; top: 0; left: 50%; width: 50%; height: 50%;
+    background: linear-gradient(90deg, transparent, var(--cyan-glow));
+    transform-origin: bottom left;
+  }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
 `;

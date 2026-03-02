@@ -35,26 +35,28 @@ export default function Navbar() {
   }, [location.pathname]);
 
   const roleLabel = user?.role === "admin"
-    ? { label: "Admin Dashboard", to: "/admin/dashboard", cls: "nb-role-admin" }
+    ? { label: "SYS_ADMIN", to: "/admin/dashboard", cls: "text-magenta" }
     : user?.role === "restaurant"
-    ? { label: "Restaurant Panel", to: "/restaurant/dashboard", cls: "nb-role-restaurant" }
+    ? { label: "HOST_PANEL", to: "/restaurant/dashboard", cls: "text-amber" }
     : null;
 
   return (
     <>
       <style>{navStyles}</style>
 
-      <nav className="nb-nav sticky-top">
-        <div className="container-xl nb-inner d-flex align-items-center justify-content-between">
+      <nav className="y2k-navbar sticky-top">
+        <div className="container-fluid px-3 px-xl-4 h-100 d-flex align-items-center justify-content-between">
 
           {/* ── Brand ── */}
-          <Link to="/" className="nb-brand d-flex align-items-center gap-2 text-decoration-none">
-            <span className="nb-brand-icon">🍔</span>
-            <span className="nb-brand-name">FoodDash</span>
+          <Link to="/" className="y2k-brand d-flex align-items-center gap-2 text-decoration-none">
+            <span className="y2k-brand-icon blink text-cyan">_</span>
+            <span className="y2k-brand-name">
+              FOOD_DASH<span className="text-cyan">.exe</span>
+            </span>
           </Link>
 
           {/* ── Right side ── */}
-          <div className="d-flex align-items-center gap-2">
+          <div className="d-flex align-items-center gap-2 gap-md-3">
 
             <ThemeToggle />
 
@@ -63,16 +65,13 @@ export default function Navbar() {
                 {/* Cart */}
                 <Link
                   to="/cart"
-                  className="nb-cart-btn d-flex align-items-center gap-2 text-decoration-none position-relative rounded-pill px-3 py-2"
+                  className="y2k-nav-btn text-decoration-none position-relative d-flex align-items-center"
                 >
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
-                    <line x1="3" y1="6" x2="21" y2="6"/>
-                    <path d="M16 10a4 4 0 01-8 0"/>
-                  </svg>
-                  <span className="nb-cart-label fw-semibold small">Cart</span>
+                  <span className="d-none d-sm-inline me-2">[DIR: CART]</span>
+                  <span className="d-sm-none">[📦]</span>
+                  
                   {cartCount > 0 && (
-                    <span className="nb-cart-badge position-absolute rounded-pill">
+                    <span className="y2k-cart-badge position-absolute">
                       {cartCount > 9 ? "9+" : cartCount}
                     </span>
                   )}
@@ -83,84 +82,75 @@ export default function Navbar() {
                   <button
                     onClick={() => setDropdownOpen(v => !v)}
                     aria-expanded={dropdownOpen}
-                    className={`nb-avatar-btn d-flex align-items-center gap-2 rounded-pill border px-2 py-1 ${dropdownOpen ? "open" : ""}`}
+                    className={`y2k-nav-btn d-flex align-items-center gap-2 ${dropdownOpen ? "active" : ""}`}
                   >
-                    <img
-                      src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=e53935&color=fff&bold=true`}
-                      alt={user.name}
-                      className="rounded-circle flex-shrink-0"
-                      width="30" height="30"
-                    />
-                    <span className="nb-user-name fw-semibold small d-none d-sm-inline">
-                      {user.name}
+                    <span className="d-none d-sm-inline">
+                      [USR: {user.name.split(" ")[0].toUpperCase()}]
                     </span>
-                    <svg
-                      className={`nb-chevron flex-shrink-0 ${dropdownOpen ? "flipped" : ""}`}
-                      width="13" height="13" viewBox="0 0 24 24"
-                      fill="none" stroke="currentColor" strokeWidth="2.5"
-                    >
-                      <path d="M6 9l6 6 6-6"/>
-                    </svg>
+                    <span className="d-sm-none">[USR]</span>
+                    <span className="y2k-chevron">{dropdownOpen ? "▲" : "▼"}</span>
                   </button>
 
                   {dropdownOpen && (
-                    <div className="nb-menu position-absolute end-0 rounded-4 overflow-hidden">
-
-                      {/* Header */}
-                      <div className="nb-menu-header d-flex align-items-center gap-3 p-3">
-                        <img
-                          src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=e53935&color=fff&bold=true&size=64`}
-                          alt={user.name}
-                          className="rounded-circle flex-shrink-0"
-                          width="38" height="38"
-                        />
-                        <div className="overflow-hidden">
-                          <div className="nb-menu-name fw-bold small text-truncate">{user.name}</div>
-                          <div className="nb-menu-role text-truncate">{user.email || user.role}</div>
-                        </div>
+                    <div className="y2k-dropdown position-absolute end-0 mt-1">
+                      
+                      {/* Window Title Bar */}
+                      <div className="y2k-title-bar d-flex justify-content-between align-items-center">
+                        <span>USER_PROFILE.sys</span>
+                        <button className="y2k-close-btn" onClick={() => setDropdownOpen(false)}>X</button>
                       </div>
 
-                      <hr className="nb-divider my-0" />
+                      <div className="p-2">
+                        {/* Header */}
+                        <div className="d-flex align-items-center gap-3 mb-2 p-2 border-bottom-wire">
+                          <img
+                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=00e5ff&color=000&bold=true&size=64`}
+                            alt={user.name}
+                            className="y2k-avatar flex-shrink-0"
+                            width="40" height="40"
+                          />
+                          <div className="overflow-hidden">
+                            <div className="y2k-menu-name text-truncate text-cyan">{user.name.toUpperCase()}</div>
+                            <div className="y2k-menu-role text-truncate">{user.email || user.role}</div>
+                          </div>
+                        </div>
 
-                      {/* Role link */}
-                      {roleLabel && (
-                        <>
-                          <Link
-                            to={roleLabel.to}
-                            className={`nb-menu-item d-flex align-items-center gap-2 px-3 py-2 text-decoration-none small fw-bold ${roleLabel.cls}`}
-                          >
-                            <span className="nb-mi-icon">⚡</span>
-                            {roleLabel.label}
-                          </Link>
-                          <hr className="nb-divider my-0" />
-                        </>
-                      )}
+                        {/* Role link */}
+                        {roleLabel && (
+                          <div className="mb-2 border-bottom-wire pb-2">
+                            <Link
+                              to={roleLabel.to}
+                              className={`y2k-menu-item d-block text-decoration-none ${roleLabel.cls}`}
+                            >
+                              &gt; {roleLabel.label}
+                            </Link>
+                          </div>
+                        )}
 
-                      {/* Standard links */}
-                      {[
-                        { icon: "👤", label: "Edit Account", to: "/profile" },
-                        { icon: "📦", label: "My Orders",    to: "/orders/my" },
-                        { icon: "⚙️", label: "Settings",     to: "/settings" },
-                      ].map((item) => (
-                        <Link
-                          key={item.to}
-                          to={item.to}
-                          className="nb-menu-item d-flex align-items-center gap-2 px-3 py-2 text-decoration-none small fw-medium"
+                        {/* Standard links */}
+                        <div className="d-flex flex-column gap-1 mb-2 border-bottom-wire pb-2">
+                          {[
+                            { label: "EDIT_ACCOUNT", to: "/profile" },
+                            { label: "ORDER_HISTORY", to: "/orders/my" },
+                            { label: "SYS_SETTINGS", to: "/settings" },
+                          ].map((item) => (
+                            <Link
+                              key={item.to}
+                              to={item.to}
+                              className="y2k-menu-item text-decoration-none"
+                            >
+                              &gt; {item.label}
+                            </Link>
+                          ))}
+                        </div>
+
+                        <button
+                          className="y2k-menu-item y2k-logout w-100 text-start border-0 bg-transparent text-magenta"
+                          onClick={handleLogout}
                         >
-                          <span className="nb-mi-icon">{item.icon}</span>
-                          {item.label}
-                        </Link>
-                      ))}
-
-                      <hr className="nb-divider my-0" />
-
-                      <button
-                        className="nb-menu-item nb-menu-logout d-flex align-items-center gap-2 px-3 py-2 w-100 border-0 bg-transparent text-start small fw-semibold"
-                        onClick={handleLogout}
-                      >
-                        <span className="nb-mi-icon">🚪</span>
-                        Logout
-                      </button>
+                          &gt; TERMINATE_SESSION
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -168,11 +158,11 @@ export default function Navbar() {
             ) : (
               /* Guest */
               <div className="d-flex align-items-center gap-2">
-                <Link to="/login" className="nb-login-btn text-decoration-none fw-semibold small px-3 py-2 rounded-pill border">
-                  Login
+                <Link to="/login" className="y2k-nav-btn text-decoration-none">
+                  [ LOGIN ]
                 </Link>
-                <Link to="/register" className="nb-signup-btn text-decoration-none fw-semibold small px-3 py-2 rounded-pill">
-                  Sign Up
+                <Link to="/register" className="y2k-nav-btn text-magenta border-magenta text-decoration-none">
+                  [ EXECUTE: SIGN_UP ]
                 </Link>
               </div>
             )}
@@ -184,199 +174,147 @@ export default function Navbar() {
 }
 
 const navStyles = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=DotGothic16&family=Share+Tech+Mono&display=swap');
 
-  /* ══════════════════════════
-     CSS VARIABLE TOKENS
-     ThemeToggle sets data-theme="dark"|"light" on <html>
-  ══════════════════════════ */
-  :root,
-  [data-theme="light"] {
-    --nb-bg:            rgba(247, 246, 243, 0.88);
-    --nb-border:        rgba(0, 0, 0, 0.09);
-    --nb-text:          #111111;
-    --nb-text-sub:      #777777;
-    --nb-hover-bg:      rgba(0, 0, 0, 0.04);
-    --nb-menu-bg:       #ffffff;
-    --nb-menu-border:   #eeeae4;
-    --nb-menu-shadow:   0 16px 48px rgba(0,0,0,0.12);
-    --nb-menu-header:   #faf9f7;
-    --nb-cart-bg:       #f0ede8;
-    --nb-cart-text:     #111111;
-    --nb-red:           #e53935;
-    --nb-amber:         #f59e0b;
-    --nb-divider-color: #f0ede8;
-    --nb-item-hover:    #faf9f7;
+  :root {
+    --nav-bg: #010409;
+    --cyan: #00e5ff;
+    --cyan-dim: rgba(0, 229, 255, 0.1);
+    --magenta: #ff0055;
+    --magenta-dim: rgba(255, 0, 85, 0.1);
+    --amber: #ffb700;
+    --text-main: #e0e6ed;
+    --text-muted: #5e7993;
+    --wire-border: 1px solid rgba(0, 229, 255, 0.4);
   }
 
-  [data-theme="dark"] {
-    --nb-bg:            rgba(13, 13, 13, 0.88);
-    --nb-border:        rgba(255, 255, 255, 0.08);
-    --nb-text:          #f0efe9;
-    --nb-text-sub:      #888888;
-    --nb-hover-bg:      rgba(255, 255, 255, 0.06);
-    --nb-menu-bg:       #1a1a1a;
-    --nb-menu-border:   #2a2a2a;
-    --nb-menu-shadow:   0 16px 48px rgba(0,0,0,0.55);
-    --nb-menu-header:   #141414;
-    --nb-cart-bg:       rgba(255, 255, 255, 0.07);
-    --nb-cart-text:     #f0efe9;
-    --nb-divider-color: #242424;
-    --nb-item-hover:    #222222;
-  }
-
-  /* ── Shell — glass effect, sticky ── */
-  .nb-nav {
-    background: var(--nb-bg) !important;
-    border-bottom: 1px solid var(--nb-border);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    font-family: 'DM Sans', sans-serif;
-    transition: background 0.2s, border-color 0.2s;
+  /* ── Shell ── */
+  .y2k-navbar {
+    background: var(--nav-bg);
+    border-bottom: var(--wire-border);
+    height: 60px;
+    font-family: 'Share Tech Mono', monospace;
     z-index: 1030;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.8);
   }
 
-  /* container height */
-  .nb-inner { height: 64px; }
+  /* Grid overlay for the navbar */
+  .y2k-navbar::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background-image: linear-gradient(var(--cyan-dim) 1px, transparent 1px), linear-gradient(90deg, var(--cyan-dim) 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
 
   /* ── Brand ── */
-  .nb-brand { transition: opacity 0.15s; }
-  .nb-brand:hover { opacity: 0.75; }
-  .nb-brand-icon { font-size: 22px; line-height: 1; }
-  .nb-brand-name {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.15rem;
-    font-weight: 800;
-    color: var(--nb-text);
-    letter-spacing: -0.03em;
+  .y2k-brand { position: relative; z-index: 1; }
+  .y2k-brand-icon { font-weight: bold; font-size: 1.2rem; }
+  .y2k-brand-name {
+    font-family: 'DotGothic16', sans-serif;
+    font-size: 1.3rem;
+    color: var(--text-main);
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 0px rgba(0, 229, 255, 0.2);
   }
 
-  /* ── Cart button ── */
-  .nb-cart-btn {
-    background: var(--nb-cart-bg);
-    color: var(--nb-cart-text) !important;
-    border: 1px solid var(--nb-border);
-    transition: all 0.15s;
+  /* ── Utilities ── */
+  .text-cyan { color: var(--cyan) !important; }
+  .text-magenta { color: var(--magenta) !important; }
+  .text-amber { color: var(--amber) !important; }
+  .border-magenta { border-color: var(--magenta) !important; }
+  .border-bottom-wire { border-bottom: 1px dashed rgba(0, 229, 255, 0.3); }
+  
+  .blink { animation: blinker 1s steps(2, start) infinite; }
+  @keyframes blinker { to { visibility: hidden; } }
+
+  /* ── Nav Buttons ── */
+  .y2k-nav-btn {
+    position: relative;
+    z-index: 1;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid var(--text-muted);
+    color: var(--text-main);
+    padding: 4px 12px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.1s;
+    font-family: 'Share Tech Mono', monospace;
   }
-  .nb-cart-btn:hover {
-    background: var(--nb-red) !important;
-    color: #fff !important;
-    border-color: var(--nb-red) !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(229,57,53,0.28);
+  .y2k-nav-btn:hover, .y2k-nav-btn.active {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    background: var(--cyan-dim);
+    box-shadow: 0 0 8px var(--cyan-dim);
   }
 
-  /* hide "Cart" label on xs */
-  @media (max-width: 499px) { .nb-cart-label { display: none !important; } }
-
-  .nb-cart-badge {
-    top: -7px !important;
-    right: -7px !important;
-    background: var(--nb-red);
-    color: #fff;
-    font-size: 0.6rem;
-    font-weight: 800;
-    min-width: 18px;
-    height: 18px;
+  /* Cart Badge */
+  .y2k-cart-badge {
+    top: -8px; right: -8px;
+    background: var(--cyan);
+    color: #000;
+    font-weight: bold;
+    font-size: 0.65rem;
     padding: 0 4px;
-    border: 2px solid var(--nb-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    animation: badgePop 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
-  }
-  @keyframes badgePop {
-    from { transform: scale(0); }
-    to   { transform: scale(1); }
+    border: 1px solid #000;
+    box-shadow: 2px 2px 0px rgba(0,0,0,0.8);
   }
 
-  /* ── Avatar trigger button ── */
-  .nb-avatar-btn {
-    background: var(--nb-hover-bg);
-    border-color: var(--nb-border) !important;
-    color: var(--nb-text);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .nb-avatar-btn:hover,
-  .nb-avatar-btn.open {
-    border-color: rgba(229,57,53,0.4) !important;
-    box-shadow: 0 0 0 3px rgba(229,57,53,0.08) !important;
-  }
-  .nb-user-name {
-    color: var(--nb-text);
-    max-width: 120px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .nb-chevron { color: var(--nb-text-sub); transition: transform 0.2s; }
-  .nb-chevron.flipped { transform: rotate(180deg); }
-
-  /* ── Dropdown panel ── */
-  .nb-menu {
-    top: calc(100% + 10px);
-    min-width: 240px;
-    background: var(--nb-menu-bg);
-    border: 1px solid var(--nb-menu-border);
-    box-shadow: var(--nb-menu-shadow);
-    animation: menuIn 0.18s cubic-bezier(0.16,1,0.3,1) both;
+  /* ── Dropdown Panel ── */
+  .y2k-dropdown {
+    width: 240px;
+    background: var(--nav-bg);
+    border: 2px solid var(--cyan);
+    box-shadow: 6px 6px 0px rgba(0, 229, 255, 0.15), 0 10px 30px rgba(0,0,0,0.9);
     z-index: 1050;
-  }
-  @keyframes menuIn {
-    from { opacity: 0; transform: translateY(-8px) scale(0.97); }
-    to   { opacity: 1; transform: translateY(0) scale(1); }
+    font-family: 'Share Tech Mono', monospace;
   }
 
-  .nb-menu-header { background: var(--nb-menu-header); }
-  .nb-menu-name {
-    font-family: 'Syne', sans-serif;
-    color: var(--nb-text);
-    letter-spacing: -0.02em;
+  .y2k-title-bar {
+    background: var(--cyan);
+    color: #000;
+    padding: 2px 8px;
+    font-size: 0.8rem;
+    font-family: 'DotGothic16', sans-serif;
+    font-weight: bold;
   }
-  .nb-menu-role { font-size: 0.72rem; color: var(--nb-text-sub); margin-top: 1px; }
-
-  /* Override Bootstrap hr */
-  .nb-divider {
-    border-color: var(--nb-divider-color) !important;
-    opacity: 1 !important;
-    margin: 0 !important;
-  }
-
-  .nb-menu-item {
-    color: var(--nb-text) !important;
-    transition: background 0.12s;
+  
+  .y2k-close-btn {
+    background: transparent;
+    border: none;
+    color: #000;
+    font-weight: bold;
     cursor: pointer;
+    font-size: 0.8rem;
   }
-  .nb-menu-item:hover { background: var(--nb-item-hover) !important; }
+  .y2k-close-btn:hover { background: #000; color: var(--cyan); }
 
-  .nb-mi-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+  /* Avatar Square */
+  .y2k-avatar {
+    border: 1px solid var(--cyan);
+    filter: grayscale(100%) contrast(1.5) sepia(1) hue-rotate(140deg);
+  }
 
-  /* Role colours */
-  .nb-role-admin       { color: var(--nb-red) !important; }
-  .nb-role-restaurant  { color: var(--nb-amber) !important; }
-  .nb-menu-logout      { color: var(--nb-red) !important; }
+  .y2k-menu-name { font-size: 0.9rem; font-weight: bold; }
+  .y2k-menu-role { font-size: 0.7rem; color: var(--text-muted); }
 
-  /* ── Guest auth buttons ── */
-  .nb-login-btn {
-    color: var(--nb-text) !important;
-    border-color: var(--nb-border) !important;
+  /* Menu Items */
+  .y2k-menu-item {
+    display: block;
+    color: var(--text-main);
+    padding: 6px 8px;
     font-size: 0.85rem;
-    transition: all 0.15s;
+    cursor: pointer;
+    transition: background 0s;
   }
-  .nb-login-btn:hover { background: var(--nb-hover-bg) !important; }
-
-  .nb-signup-btn {
-    background: var(--nb-red);
+  .y2k-menu-item:hover {
+    background: var(--cyan);
+    color: #000 !important;
+    text-shadow: none;
+  }
+  .y2k-logout:hover {
+    background: var(--magenta) !important;
     color: #fff !important;
-    font-size: 0.85rem;
-    transition: all 0.15s;
-    box-shadow: 0 2px 12px rgba(229,57,53,0.28);
-  }
-  .nb-signup-btn:hover {
-    background: #c62828 !important;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(229,57,53,0.36);
   }
 `;

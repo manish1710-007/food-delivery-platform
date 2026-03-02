@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import api from "../api/axios";
 import { useCart } from "../context/CartContext";
 
@@ -12,6 +12,9 @@ export default function Checkout() {
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [phone, setPhone] = useState("");
   const [restaurantId, setRestaurantId] = useState("");
+  
+  // Extra Aesthetic: Fake dynamic encryption key
+  const [encKey, setEncKey] = useState("0x0000000000000000");
 
   const navigate = useNavigate();
   const { fetchCartCount } = useCart();
@@ -28,7 +31,7 @@ export default function Checkout() {
         }
       } catch (err) {
         console.error(err);
-        alert("Failed to load cart");
+        alert("SYS_ERR: FAILED_TO_MOUNT_CART");
       } finally {
         setLoading(false);
       }
@@ -40,9 +43,15 @@ export default function Checkout() {
   const deliveryFee = cart.length > 0 ? 49 : 0;
   const grandTotal  = itemTotal + deliveryFee;
 
+  // Aesthetic wrapper for input changes
+  const handleInput = (setter, val) => {
+    setter(val);
+    setEncKey("0x" + Math.random().toString(16).slice(2, 18).toUpperCase());
+  };
+
   const handleCheckout = async () => {
-    if (!deliveryAddress || !phone) return alert("Delivery address and phone number are required!");
-    if (!restaurantId) return alert("Error: Could not identify the restaurant for this order.");
+    if (!deliveryAddress || !phone) return alert("SYS_HALT: INCOMPLETE_PAYLOAD");
+    if (!restaurantId) return alert("SYS_HALT: TARGET_NODE_UNKNOWN");
     try {
       setSubmitting(true);
       const res = await api.post("/orders/checkout", {
@@ -52,18 +61,18 @@ export default function Checkout() {
         paymentMethod: "cod",
       });
       fetchCartCount();
-      alert("Order placed successfully! 🎉");
+      alert("PAYLOAD_DELIVERED_SUCCESSFULLY [OK]");
       navigate(`/orders/${res.data.order?._id || "my"}`);
     } catch (err) {
-      alert(err.response?.data?.message || "Checkout failed");
+      alert(err.response?.data?.message || "TRANSMISSION_FAILED");
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleStripeCheckout = async () => {
-    if (!deliveryAddress || !phone) return alert("Delivery address and phone number are required!");
-    if (!restaurantId) return alert("Error: Could not identify the restaurant for this order.");
+    if (!deliveryAddress || !phone) return alert("SYS_HALT: INCOMPLETE_PAYLOAD");
+    if (!restaurantId) return alert("SYS_HALT: TARGET_NODE_UNKNOWN");
     try {
       setSubmitting(true);
       const res = await api.post("/payment/create-checkout-session", {
@@ -73,23 +82,27 @@ export default function Checkout() {
       });
       window.location.href = res.data.url;
     } catch (err) {
-      alert(err.response?.data?.message || "Payment Failed.");
+      alert(err.response?.data?.message || "SECURE_TUNNEL_FAILED");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const foodEmojis = ["🍔", "🍕", "🌮", "🍜", "🍱", "🥗", "🍛", "🌯"];
-  const getEmoji = (name = "") => foodEmojis[name.charCodeAt(0) % foodEmojis.length];
+  const _foodEmojis = ["🍔", "🍕", "🌮", "🍜", "🍱", "🥗", "🍛", "🌯"];
+  const _getEmoji = (name = "") => _foodEmojis[name.charCodeAt(0) % _foodEmojis.length];
 
   /* ── Loading ── */
   if (loading) {
     return (
       <>
         <style>{styles}</style>
-        <div className="d-flex flex-column align-items-center justify-content-center co-loading gap-3">
-          <div className="co-spinner" />
-          <p className="mb-0 small co-muted">Preparing checkout…</p>
+        <div className="y2k-page d-flex flex-column align-items-center justify-content-center min-vh-100">
+          <div className="y2k-wire-box p-4 text-center" style={{ width: "320px" }}>
+            <div className="mb-3 text-cyan">ESTABLISHING_SECURE_LINK... <span className="blink">_</span></div>
+            <div className="y2k-progress-bar">
+              <div className="y2k-progress-fill" style={{ animationDuration: '2s' }}></div>
+            </div>
+          </div>
         </div>
       </>
     );
@@ -100,19 +113,15 @@ export default function Checkout() {
     return (
       <>
         <style>{styles}</style>
-        <div className="d-flex flex-column align-items-center justify-content-center co-loading gap-3 text-center">
-          <div style={{ fontSize: 56, filter: "grayscale(0.3)" }}>🛒</div>
-          <h2 className="co-title mb-0">Your cart is empty</h2>
-          <p className="co-muted mb-2">Nothing to checkout yet</p>
-          <button
-            className="co-back-btn btn d-inline-flex align-items-center gap-2 rounded-3 fw-bold px-4 py-3"
-            onClick={() => navigate("/")}
-          >
-            Browse Restaurants
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </button>
+        <div className="y2k-page d-flex flex-column align-items-center justify-content-center min-vh-100">
+          <div className="y2k-wire-box text-center p-5 mx-auto" style={{ maxWidth: "600px" }}>
+            <div className="mb-3 text-muted" style={{ fontSize: 48 }}>[ NULL ]</div>
+            <h2 className="text-cyan mb-2 fs-4">PAYLOAD_EMPTY</h2>
+            <p className="text-muted mb-4 small">NO_DATA_TO_TRANSMIT</p>
+            <Link to="/" className="y2k-btn-magenta text-decoration-none d-inline-block px-4 py-2">
+              [ RETURN_TO_ROOT ]
+            </Link>
+          </div>
         </div>
       </>
     );
@@ -121,204 +130,218 @@ export default function Checkout() {
   return (
     <>
       <style>{styles}</style>
-      <div className="co-page">
-        <div className="container" style={{ maxWidth: 1040 }}>
+      <div className="y2k-page pb-5">
+        {/* Grid & Scanlines */}
+        <div className="y2k-grid-bg"></div>
+        <div className="scanlines"></div>
 
-          {/* ── Step indicator ── */}
-          <div className="d-flex align-items-center mb-5 co-steps">
-            {/* Step 1 — done */}
-            <div className="d-flex flex-column align-items-center gap-1 co-step co-step-done">
-              <div className="co-step-dot d-flex align-items-center justify-content-center rounded-circle">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                  <path d="M20 6L9 17l-5-5"/>
-                </svg>
-              </div>
-              <span className="text-uppercase fw-semibold" style={{ fontSize: "0.68rem", letterSpacing: "0.08em" }}>Cart</span>
-            </div>
-
-            <div className="co-step-line flex-grow-1" />
-
-            {/* Step 2 — active */}
-            <div className="d-flex flex-column align-items-center gap-1 co-step co-step-active">
-              <div className="co-step-dot d-flex align-items-center justify-content-center rounded-circle fw-bold">2</div>
-              <span className="text-uppercase fw-bold" style={{ fontSize: "0.68rem", letterSpacing: "0.08em" }}>Checkout</span>
-            </div>
-
-            <div className="co-step-line flex-grow-1" />
-
-            {/* Step 3 — pending */}
-            <div className="d-flex flex-column align-items-center gap-1 co-step co-step-pending">
-              <div className="co-step-dot d-flex align-items-center justify-content-center rounded-circle">3</div>
-              <span className="text-uppercase fw-semibold" style={{ fontSize: "0.68rem", letterSpacing: "0.08em" }}>Confirm</span>
+        <div className="container-fluid px-3 px-xl-4 position-relative z-1 pt-4 w-100">
+          
+          {/* Header & Fake Routing Steps */}
+          <div className="y2k-wire-box d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 p-2 border-cyan">
+            <h1 className="y2k-title mb-2 mb-md-0 fs-5 text-cyan d-flex align-items-center gap-2 m-0 p-2">
+              <span className="blink">_</span> SECURE_CHECKOUT_GATEWAY
+            </h1>
+            
+            <div className="d-flex gap-2 p-2 small font-monospace text-muted overflow-auto">
+              <span>[OK] CART_MOUNTED</span>
+              <span className="text-cyan">--&gt;</span>
+              <span className="text-cyan">[WAIT] AUTH_REQUIRED</span>
+              <span className="text-cyan">--&gt;</span>
+              <span>[LOCKED] TRANSMIT</span>
             </div>
           </div>
 
-          {/* ── Page title ── */}
-          <h1 className="co-title mb-4">Checkout</h1>
-
-          {/* ── Two-column layout ── */}
           <div className="row g-4 align-items-start">
 
-            {/* ── LEFT: Forms ── */}
-            <div className="col-lg-8 d-flex flex-column gap-4">
+            {/* ── LEFT: Forms (col-xl-5) ── */}
+            <div className="col-12 col-xl-5 d-flex flex-column gap-4">
 
               {/* Delivery Details */}
-              <div className="co-card rounded-4 border p-4">
-                <div className="d-flex align-items-center gap-3 mb-4">
-                  <div className="co-card-icon d-flex align-items-center justify-content-center rounded-3 flex-shrink-0">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
-                    </svg>
-                  </div>
-                  <h2 className="co-card-title mb-0">Delivery Details</h2>
+              <div className="y2k-wire-box border-cyan p-4 text-start">
+                <div className="d-flex justify-content-between border-bottom-wire pb-2 mb-4">
+                  <span className="text-cyan small">/// 01_TARGET_COORDINATES</span>
                 </div>
 
                 {/* Address */}
-                <div className="mb-3">
-                  <label className="co-label d-block text-uppercase fw-bold mb-2">Delivery Address</label>
-                  <textarea
-                    className="co-input w-100 rounded-3"
-                    rows="3"
-                    placeholder="123 Food Street, Apt 4B, City…"
-                    value={deliveryAddress}
-                    onChange={(e) => setDeliveryAddress(e.target.value)}
-                  />
+                <div className="mb-4">
+                  <label className="d-block text-muted small mb-1">&gt; LOCAL_ADDR</label>
+                  <div className="y2k-input-group d-flex">
+                    <span className="y2k-input-prefix px-2 py-2 text-cyan border-end border-cyan">C:\</span>
+                    <textarea
+                      className="y2k-input flex-grow-1 p-2"
+                      rows="2"
+                      placeholder="ENTER_PHYSICAL_LOCATION..."
+                      value={deliveryAddress}
+                      onChange={(e) => handleInput(setDeliveryAddress, e.target.value)}
+                    />
+                  </div>
                 </div>
 
                 {/* Phone */}
-                <div className="mb-0">
-                  <label className="co-label d-block text-uppercase fw-bold mb-2">Phone Number</label>
-                  <div className="position-relative">
-                    <span className="co-input-prefix position-absolute d-flex align-items-center">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.63A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/>
-                      </svg>
-                    </span>
+                <div className="mb-2">
+                  <label className="d-block text-muted small mb-1">&gt; COMM_CHANNEL</label>
+                  <div className="y2k-input-group d-flex align-items-center">
+                    <span className="y2k-input-prefix px-2 py-2 text-cyan border-end border-cyan">TEL:</span>
                     <input
-                      className="co-input co-input-icon w-100 rounded-3"
-                      placeholder="+91 9876543210"
+                      className="y2k-input flex-grow-1 p-2"
+                      placeholder="ENTER_PHONE_NUMBER..."
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={(e) => handleInput(setPhone, e.target.value)}
                     />
                   </div>
                 </div>
               </div>
 
               {/* Payment Method */}
-              <div className="co-card rounded-4 border p-4">
-                <div className="d-flex align-items-center gap-3 mb-4">
-                  <div className="co-card-icon d-flex align-items-center justify-content-center rounded-3 flex-shrink-0">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/>
-                    </svg>
-                  </div>
-                  <h2 className="co-card-title mb-0">Payment Method</h2>
+              <div className="y2k-wire-box border-magenta p-4 text-start">
+                <div className="d-flex justify-content-between border-bottom-wire border-magenta pb-2 mb-4">
+                  <span className="text-magenta small">/// 02_EXCHANGE_PROTOCOL</span>
                 </div>
 
                 <div className="d-flex flex-column gap-3">
                   {/* COD */}
                   <button
                     onClick={() => setPayMethod("cod")}
-                    className={`co-pay-option d-flex align-items-center gap-3 rounded-3 border text-start ${payMethod === "cod" ? "selected" : ""}`}
+                    className={`y2k-pay-option d-flex align-items-center gap-3 p-3 text-start ${payMethod === "cod" ? "active" : ""}`}
                   >
-                    <span className="co-pay-icon flex-shrink-0">💵</span>
+                    <span className="fs-4 flex-shrink-0 text-cyan">[{payMethod === "cod" ? "X" : " "}]</span>
                     <div className="d-flex flex-column gap-1 flex-grow-1">
-                      <span className="co-pay-title fw-semibold">Cash on Delivery</span>
-                      <span className="co-pay-sub">Pay when your order arrives</span>
+                      <span className="fw-bold font-monospace text-main">PROTOCOL: HANDSHAKE</span>
+                      <span className="small" style={{ opacity: 0.7 }}>( Cash on Delivery )</span>
                     </div>
-                    <div className="co-pay-radio rounded-circle flex-shrink-0" />
                   </button>
 
                   {/* Card */}
                   <button
                     onClick={() => setPayMethod("card")}
-                    className={`co-pay-option d-flex align-items-center gap-3 rounded-3 border text-start ${payMethod === "card" ? "selected" : ""}`}
+                    className={`y2k-pay-option d-flex align-items-center gap-3 p-3 text-start ${payMethod === "card" ? "active" : ""}`}
                   >
-                    <span className="co-pay-icon flex-shrink-0">💳</span>
+                    <span className="fs-4 flex-shrink-0 text-magenta">[{payMethod === "card" ? "X" : " "}]</span>
                     <div className="d-flex flex-column gap-1 flex-grow-1">
-                      <span className="co-pay-title fw-semibold">Pay with Card</span>
-                      <span className="co-pay-sub">Visa, Mastercard, UPI & more</span>
+                      <span className="fw-bold font-monospace text-main">PROTOCOL: STRIPE_SECURE</span>
+                      <span className="small" style={{ opacity: 0.7 }}>( Credit / Debit / UPI )</span>
                     </div>
-                    <div className="co-pay-radio rounded-circle flex-shrink-0" />
                   </button>
                 </div>
               </div>
 
             </div>
 
-            {/* ── RIGHT: Order Summary ── */}
-            <div className="col-lg-4">
-              <div className="position-sticky" style={{ top: 24 }}>
-                <p className="co-panel-label text-uppercase mb-2">Order Summary</p>
+            {/* ── MIDDLE: Order Summary (col-xl-4) ── */}
+            <div className="col-12 col-lg-6 col-xl-4">
+              <div className="position-sticky" style={{ top: "80px" }}>
+                
+                <div className="y2k-wire-box border-magenta p-4 text-start">
+                  <div className="d-flex justify-content-between border-bottom-wire border-magenta pb-2 mb-3">
+                    <span className="text-magenta small">/// TRANSACTION_LOG</span>
+                  </div>
 
-                <div className="co-summary-card rounded-4 border p-4">
-
-                  {/* Items list */}
-                  <div className="d-flex flex-column gap-3 mb-3">
+                  {/* Items Mini List */}
+                  <div className="d-flex flex-column gap-2 mb-4">
                     {cart.map((item) => (
-                      <div key={item._id} className="d-flex align-items-center gap-2 co-summary-item">
-                        <div className="co-summary-emoji d-flex align-items-center justify-content-center rounded-3 flex-shrink-0">
-                          {getEmoji(item.name)}
-                        </div>
-                        <div className="d-flex align-items-baseline gap-1 flex-grow-1 overflow-hidden">
-                          <span className="co-summary-name fw-semibold text-truncate">{item.name}</span>
-                          <span className="co-summary-qty flex-shrink-0">× {item.quantity}</span>
-                        </div>
-                        <span className="co-summary-price fw-bold flex-shrink-0">₹{item.price * item.quantity}</span>
+                      <div key={item._id} className="d-flex justify-content-between align-items-center small font-monospace">
+                        <span className="text-truncate text-muted pe-2">&gt; {item.name.toUpperCase()} <span className="text-cyan">x{item.quantity}</span></span>
+                        <span className="text-nowrap text-main flex-shrink-0">INR {item.price * item.quantity}</span>
                       </div>
                     ))}
                   </div>
 
-                  <hr className="co-divider my-0 mb-3" />
+                  <div className="border-bottom-wire border-magenta mb-3"></div>
 
                   {/* Fee rows */}
-                  <div className="d-flex flex-column gap-2 mb-3">
-                    <div className="d-flex justify-content-between co-fee-row">
-                      <span>Item Total</span>
-                      <span className="fw-semibold">₹{itemTotal}</span>
+                  <div className="d-flex flex-column gap-3 mb-4 small font-monospace">
+                    <div className="d-flex justify-content-between align-items-center text-muted">
+                      <span className="text-truncate pe-2">&gt; SUBTOTAL</span>
+                      <span className="text-nowrap flex-shrink-0 text-end">INR {itemTotal}</span>
                     </div>
-                    <div className="d-flex justify-content-between co-fee-row">
-                      <span>Delivery</span>
-                      <span className="fw-semibold co-fee-green">+ ₹{deliveryFee}</span>
-                    </div>
-                    <div className="d-flex justify-content-between co-fee-row">
-                      <span>Platform Fee</span>
-                      <span className="fw-semibold co-fee-green">Free</span>
+                    <div className="d-flex justify-content-between align-items-center text-muted">
+                      <span className="text-truncate pe-2">&gt; TRANSPORT_FEE</span>
+                      <span className="text-cyan text-nowrap flex-shrink-0 text-end">+ INR {deliveryFee}</span>
                     </div>
                   </div>
 
-                  <hr className="co-divider my-0 mb-3" />
+                  <div className="border-bottom-wire border-magenta mb-3"></div>
 
                   {/* Grand total */}
-                  <div className="d-flex justify-content-between align-items-center mb-4">
-                    <span className="co-grand-label fw-bold">Grand Total</span>
-                    <span className="co-grand-amount">₹{grandTotal}</span>
+                  <div className="d-flex justify-content-between align-items-end mb-4">
+                    <span className="text-magenta fs-6 text-nowrap pe-2">SYS_TOTAL</span>
+                    <span className="text-magenta fs-2 fw-bold lh-1 text-nowrap text-end flex-shrink-0">INR {grandTotal}</span>
                   </div>
 
-                  {/* CTA */}
+                  {/* MASSIVE CHECKOUT BUTTON */}
                   <button
-                    className="co-place-btn btn w-100 d-flex align-items-center justify-content-center gap-2 rounded-3 fw-bold"
+                    className="y2k-btn-checkout w-100 mb-2 d-flex justify-content-center align-items-center"
                     disabled={submitting || !payMethod}
                     onClick={payMethod === "cod" ? handleCheckout : handleStripeCheckout}
                   >
                     {submitting ? (
-                      <><div className="co-btn-spinner" /> Processing…</>
+                      <><span className="blink">_</span> TRANSMITTING...</>
                     ) : !payMethod ? (
-                      "Select a payment method"
-                    ) : payMethod === "cod" ? (
-                      <>Place Order <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></>
+                      "[ AWAITING_PROTOCOL ]"
                     ) : (
-                      <>Pay ₹{grandTotal} <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></>
+                      "[ TRANSMIT_PAYLOAD ]"
                     )}
                   </button>
+                  
+                  {/* Warning label if form incomplete */}
+                  {(!deliveryAddress || !phone) && (
+                    <div className="text-center text-magenta mt-2 font-monospace" style={{fontSize: "0.7rem"}}>
+                      WARN: INPUT_COORDINATES_REQUIRED
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
 
-                  {/* Secure note */}
-                  <div className="d-flex align-items-center justify-content-center gap-2 mt-3 co-secure">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                    </svg>
-                    256-bit SSL encrypted & secure
+            {/* ── RIGHT: System Diagnostics (col-xl-3) ── */}
+            <div className="col-12 col-lg-6 col-xl-3 d-none d-xl-block">
+              <div className="position-sticky" style={{ top: "80px" }}>
+                
+                <div className="y2k-wire-box p-4 text-start h-100 d-flex flex-column gap-3 border-cyan">
+                  <div className="d-flex justify-content-between border-bottom-wire border-cyan pb-2 mb-2">
+                    <span className="text-cyan small">/// SECURITY_MODULE</span>
                   </div>
+
+                  {/* ASCII Lock */}
+                  <div className="text-center font-monospace text-cyan my-3" style={{ fontSize: "0.6rem", whiteSpace: "pre" }}>
+                    {`
+   .--------.
+  / .------. \\
+ / /        \\ \\
+ | |        | |
+_| |________| |_
+.' |_|        |_| '.
+'._____ ____ _____.'
+|     .'____'.     |
+'.__.'.'    '.'.__.'
+'.__  | SYS  |  __.'
+|   '.'.____.'.'   |
+'.____'.____.'____.'
+'.________________.'
+                    `}
+                  </div>
+
+                  <div className="border-bottom-wire border-cyan"></div>
+
+                  {/* Dynamic Encryption Key Visual */}
+                  <div>
+                    <div className="text-muted mb-1" style={{ fontSize: "0.7rem" }}>&gt; SESSION_KEY_GEN</div>
+                    <div className="font-monospace text-magenta text-truncate" style={{ fontSize: "0.8rem", background: "rgba(255,0,85,0.1)", padding: "4px" }}>
+                      {encKey}
+                    </div>
+                  </div>
+
+                  <div className="border-bottom-wire border-cyan mt-2"></div>
+                  
+                  {/* Status List */}
+                  <div className="text-muted font-monospace" style={{ fontSize: "0.65rem", lineHeight: "1.6" }}>
+                    &gt; SSL_CERT: <span className="text-cyan">VALID</span><br/>
+                    &gt; HANDSHAKE: <span className={payMethod ? "text-cyan" : "text-muted"}>{payMethod ? "ESTABLISHED" : "PENDING"}</span><br/>
+                    &gt; GEO_DATA: <span className={deliveryAddress ? "text-cyan" : "text-muted"}>{deliveryAddress ? "LOCKED" : "AWAITING"}</span><br/>
+                    &gt; COMM_NODE: <span className={phone ? "text-cyan" : "text-muted"}>{phone ? "ACTIVE" : "AWAITING"}</span>
+                  </div>
+
                 </div>
               </div>
             </div>
@@ -331,407 +354,172 @@ export default function Checkout() {
 }
 
 const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=DotGothic16&family=Share+Tech+Mono&display=swap');
 
-  /* ══════════════════════════════════
-     CSS VARIABLE TOKENS
-     ThemeToggle sets data-theme="dark"|"light" on <html>
-  ══════════════════════════════════ */
-  :root,
-  [data-theme="light"] {
-    --co-bg-page:       #f7f6f3;
-    --co-bg-card:       #ffffff;
-    --co-bg-input:      #faf9f7;
-    --co-bg-icon:       #f5f3ef;
-    --co-bg-pay:        #faf9f7;
-    --co-bg-pay-sel:    #ffffff;
-    --co-bg-pay-hover:  #f5f3ef;
-    --co-border:        #e8e6e1;
-    --co-border-input:  #ede9e3;
-    --co-border-pay:    #ede9e3;
-    --co-border-pay-sel:#111111;
-    --co-text-primary:  #111111;
-    --co-text-secondary:#555555;
-    --co-text-muted:    #888888;
-    --co-text-micro:    #bbbbbb;
-    --co-step-dot-bg:   #f7f6f3;
-    --co-step-dot-bd:   #dddddd;
-    --co-step-dot-cl:   #cccccc;
-    --co-step-line:     #e5e3df;
-    --co-step-done-bg:  #e8f5e9;
-    --co-step-done-bd:  #4caf50;
-    --co-step-done-cl:  #4caf50;
-    --co-step-act-bg:   #111111;
-    --co-step-act-bd:   #111111;
-    --co-step-act-cl:   #ffffff;
-    --co-btn-bg:        #111111;
-    --co-btn-text:      #ffffff;
-    --co-btn-dis-bg:    #d8d5d0;
-    --co-btn-dis-text:  #aaaaaa;
-    --co-red:           #e53935;
-    --co-green:         #4caf50;
-    --co-shadow-card:   0 2px 16px rgba(0,0,0,0.04);
-    --co-shadow-btn:    0 4px 20px rgba(0,0,0,0.15);
-    --co-shadow-btn-hv: 0 8px 28px rgba(229,57,53,0.3);
-    --co-focus-ring:    rgba(17,17,17,0.06);
-    --co-spinner-track: #f0ede8;
-    --co-pay-radio-bd:  #dddddd;
-    --co-pay-radio-sel: #111111;
-    --co-summary-emoji: #f5f3ef;
-    --co-divider:       #f0ede8;
+  :root {
+    --bg-color: #02060d; 
+    --cyan: #00e5ff;
+    --cyan-dim: rgba(0, 229, 255, 0.2);
+    --cyan-glow: rgba(0, 229, 255, 0.5);
+    --magenta: #ff0055;
+    --magenta-dim: rgba(255, 0, 85, 0.2);
+    --text-main: #e0e6ed;
+    --text-muted: #5e7993;
+    --wire-border: 1px solid var(--cyan-glow);
   }
 
-  [data-theme="dark"] {
-    --co-bg-page:       #0f0f0f;
-    --co-bg-card:       #1a1a1a;
-    --co-bg-input:      #151515;
-    --co-bg-icon:       #252525;
-    --co-bg-pay:        #151515;
-    --co-bg-pay-sel:    #1f1f1f;
-    --co-bg-pay-hover:  #1e1e1e;
-    --co-border:        #2a2a2a;
-    --co-border-input:  #2e2e2e;
-    --co-border-pay:    #2e2e2e;
-    --co-border-pay-sel:#f0efe9;
-    --co-text-primary:  #f0efe9;
-    --co-text-secondary:#9a9a9a;
-    --co-text-muted:    #666666;
-    --co-text-micro:    #555555;
-    --co-step-dot-bg:   #1a1a1a;
-    --co-step-dot-bd:   #3a3a3a;
-    --co-step-dot-cl:   #555555;
-    --co-step-line:     #2a2a2a;
-    --co-step-done-bg:  #1a2e1a;
-    --co-step-done-bd:  #4caf50;
-    --co-step-done-cl:  #4caf50;
-    --co-step-act-bg:   #f0efe9;
-    --co-step-act-bd:   #f0efe9;
-    --co-step-act-cl:   #111111;
-    --co-btn-bg:        #f0efe9;
-    --co-btn-text:      #111111;
-    --co-btn-dis-bg:    #2a2a2a;
-    --co-btn-dis-text:  #555555;
-    --co-red:           #ef5350;
-    --co-green:         #66bb6a;
-    --co-shadow-card:   0 2px 24px rgba(0,0,0,0.4);
-    --co-shadow-btn:    0 4px 20px rgba(0,0,0,0.5);
-    --co-shadow-btn-hv: 0 8px 28px rgba(239,83,80,0.35);
-    --co-focus-ring:    rgba(240,239,233,0.07);
-    --co-spinner-track: #2a2a2a;
-    --co-pay-radio-bd:  #444444;
-    --co-pay-radio-sel: #f0efe9;
-    --co-summary-emoji: #252525;
-    --co-divider:       #222222;
-  }
-
-  /* ── Page ── */
-  .co-page {
+  /* BASE STYLES */
+  .y2k-page {
+    font-family: 'Share Tech Mono', monospace;
+    background-color: var(--bg-color);
     min-height: 100vh;
-    background: var(--co-bg-page);
-    font-family: 'DM Sans', sans-serif;
-    padding: 44px 0 80px;
-    transition: background 0.2s;
-  }
-
-  /* ── Step indicator ── */
-  .co-steps { margin-bottom: 36px; }
-
-  .co-step-dot {
-    width: 32px; height: 32px;
-    font-size: 0.78rem;
-    font-family: 'Syne', sans-serif;
-  }
-
-  /* Pending */
-  .co-step-pending .co-step-dot {
-    background: var(--co-step-dot-bg);
-    border: 2px solid var(--co-step-dot-bd);
-    color: var(--co-step-dot-cl);
-  }
-  .co-step-pending span { color: var(--co-text-micro); }
-
-  /* Active */
-  .co-step-active .co-step-dot {
-    background: var(--co-step-act-bg);
-    border: 2px solid var(--co-step-act-bd);
-    color: var(--co-step-act-cl);
-  }
-  .co-step-active span { color: var(--co-text-primary); }
-
-  /* Done */
-  .co-step-done .co-step-dot {
-    background: var(--co-step-done-bg);
-    border: 2px solid var(--co-step-done-bd);
-    color: var(--co-step-done-cl);
-  }
-  .co-step-done span { color: var(--co-text-secondary); }
-
-  /* Connector line */
-  .co-step-line {
-    height: 2px;
-    background: var(--co-step-line);
-    max-width: 80px;
-    margin: 0 8px 22px;
-  }
-
-  /* ── Title ── */
-  .co-title {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(1.7rem, 4vw, 2.2rem);
-    font-weight: 800;
-    color: var(--co-text-primary);
-    letter-spacing: -0.04em;
-  }
-
-  /* ── Section cards — extend Bootstrap .border ── */
-  .co-card {
-    background: var(--co-bg-card);
-    border-color: var(--co-border) !important;
-    box-shadow: var(--co-shadow-card);
-  }
-
-  /* Card icon tile */
-  .co-card-icon {
-    width: 34px; height: 34px;
-    background: var(--co-bg-icon);
-    color: var(--co-text-secondary);
-  }
-
-  /* Card section title */
-  .co-card-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--co-text-primary);
-    letter-spacing: -0.02em;
-  }
-
-  /* ── Field labels ── */
-  .co-label {
-    font-size: 0.68rem;
-    letter-spacing: 0.09em;
-    color: var(--co-text-muted);
-  }
-
-  /* ── Inputs & textarea ── */
-  .co-input {
-    background: var(--co-bg-input);
-    border: 1.5px solid var(--co-border-input);
-    padding: 13px 16px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.92rem;
-    color: var(--co-text-primary);
-    outline: none;
-    resize: vertical;
-    transition: border-color 0.15s, box-shadow 0.15s;
-    display: block;
-  }
-  .co-input:focus {
-    border-color: var(--co-text-primary) !important;
-    box-shadow: 0 0 0 3px var(--co-focus-ring) !important;
-  }
-  .co-input::placeholder { color: var(--co-text-micro); }
-
-  /* Phone input with left icon padding */
-  .co-input-icon { padding-left: 40px; }
-
-  .co-input-prefix {
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--co-text-micro);
-    pointer-events: none;
-  }
-
-  /* ── Payment option buttons ── */
-  .co-pay-option {
-    background: var(--co-bg-pay);
-    border-color: var(--co-border-pay) !important;
-    padding: 16px 18px;
-    cursor: pointer;
-    transition: all 0.15s;
-    font-family: 'DM Sans', sans-serif;
-  }
-  .co-pay-option:hover {
-    border-color: var(--co-text-secondary) !important;
-    background: var(--co-bg-pay-hover);
-  }
-  .co-pay-option.selected {
-    border-color: var(--co-border-pay-sel) !important;
-    background: var(--co-bg-pay-sel);
-    box-shadow: 0 0 0 3px var(--co-focus-ring);
-  }
-
-  .co-pay-icon { font-size: 22px; }
-
-  .co-pay-title {
-    font-size: 0.9rem;
-    color: var(--co-text-primary);
-  }
-  .co-pay-sub {
-    font-size: 0.75rem;
-    color: var(--co-text-muted);
-  }
-
-  /* Custom radio dot */
-  .co-pay-radio {
-    width: 18px; height: 18px;
-    border: 2px solid var(--co-pay-radio-bd);
+    color: var(--text-main);
     position: relative;
-    transition: border-color 0.15s;
-  }
-  .co-pay-option.selected .co-pay-radio {
-    border-color: var(--co-pay-radio-sel);
-  }
-  .co-pay-option.selected .co-pay-radio::after {
-    content: '';
-    position: absolute;
-    inset: 3px;
-    background: var(--co-pay-radio-sel);
-    border-radius: 50%;
+    overflow-x: hidden;
+    width: 100%;
   }
 
-  /* ── Summary card ── */
-  .co-panel-label {
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: var(--co-text-muted);
+  /* GRID & OVERLAYS */
+  .y2k-grid-bg {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background-image: linear-gradient(var(--cyan-dim) 1px, transparent 1px), linear-gradient(90deg, var(--cyan-dim) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 0; pointer-events: none; opacity: 0.5;
   }
 
-  .co-summary-card {
-    background: var(--co-bg-card);
-    border-color: var(--co-border) !important;
-    box-shadow: var(--co-shadow-card);
+  .scanlines {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
+    background-size: 100% 4px; z-index: 9999; pointer-events: none; opacity: 0.6;
   }
 
-  /* Summary item row */
-  .co-summary-item { animation: fadeUp 0.3s ease both; }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
+  /* UTILS */
+  .text-cyan { color: var(--cyan) !important; }
+  .text-magenta { color: var(--magenta) !important; }
+  .text-main { color: var(--text-main) !important; }
+  .text-muted { color: var(--text-muted) !important; }
+  .border-cyan { border: 1px solid var(--cyan) !important; }
+  .border-magenta { border-color: var(--magenta) !important; border: 1px solid var(--magenta) !important; }
+  .border-bottom-wire { border-bottom: 1px dashed var(--cyan-glow); }
+  
+  .blink { animation: blinker 1s steps(2, start) infinite; }
+  @keyframes blinker { to { visibility: hidden; } }
+
+  /* WIREFRAME BOXES */
+  .y2k-wire-box {
+    background: rgba(2, 6, 13, 0.85);
+    backdrop-filter: blur(4px);
+    border: var(--wire-border);
+    position: relative;
+  }
+  .y2k-wire-box::before, .y2k-wire-box::after {
+    content: ''; position: absolute; width: 8px; height: 8px; 
+    border: 1px solid var(--cyan); pointer-events: none;
+  }
+  .y2k-wire-box::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .y2k-wire-box::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+  
+  .y2k-wire-box.border-magenta::before, .y2k-wire-box.border-magenta::after { border-color: var(--magenta); }
+
+  /* TYPOGRAPHY */
+  .y2k-title-bar {
+    font-family: 'DotGothic16', sans-serif;
   }
 
-  .co-summary-emoji {
-    width: 36px; height: 36px;
-    background: var(--co-summary-emoji);
-    font-size: 17px;
+  /* TERMINAL INPUTS */
+  .y2k-input-group {
+    background: rgba(0,0,0,0.6);
+    border: 1px solid var(--cyan-glow);
+    transition: all 0.2s;
   }
+  .y2k-input-group:focus-within {
+    border-color: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan-dim);
+  }
+  .y2k-input-prefix {
+    font-size: 0.8rem;
+    background: rgba(0, 229, 255, 0.05);
+  }
+  .y2k-input {
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    font-family: 'Share Tech Mono', monospace;
+    outline: none;
+    font-size: 0.9rem;
+  }
+  .y2k-input::placeholder { color: rgba(94, 121, 147, 0.4); }
 
-  .co-summary-name {
-    font-size: 0.85rem;
-    color: var(--co-text-primary);
-    line-height: 1.3;
+  /* PROTOCOL SELECTION BUTTONS */
+  .y2k-pay-option {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--text-muted);
+    cursor: pointer;
+    font-family: 'Share Tech Mono', monospace;
+    transition: all 0.2s;
   }
-  .co-summary-qty {
-    font-size: 0.75rem;
-    color: var(--co-text-micro);
+  .y2k-pay-option:hover {
+    border-color: var(--cyan);
+    background: var(--cyan-dim);
   }
-  .co-summary-price {
-    font-family: 'Syne', sans-serif;
-    font-size: 0.88rem;
-    color: var(--co-text-primary);
+  .y2k-pay-option.active {
+    background: var(--magenta-dim);
+    border-color: var(--magenta);
+    box-shadow: inset 0 0 15px rgba(255,0,85,0.2);
   }
+  .y2k-pay-option.active .text-main { color: var(--magenta) !important; text-shadow: 0 0 5px rgba(255,0,85,0.5); }
 
-  /* Dividers */
-  .co-divider {
-    border-color: var(--co-divider) !important;
-    opacity: 1 !important;
+  /* THE MASSIVE CHECKOUT BUTTON */
+  .y2k-btn-checkout {
+    background: rgba(255, 0, 85, 0.1);
+    border: 2px solid var(--magenta);
+    color: var(--magenta);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(0.9rem, 1.8vw, 1.15rem); 
+    font-weight: bold;
+    padding: 14px 8px;
+    text-align: center;
+    text-shadow: 0 0 8px rgba(255, 0, 85, 0.8);
+    box-shadow: inset 0 0 15px rgba(255, 0, 85, 0.2);
+    transition: all 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
+    letter-spacing: 1px;
+    cursor: pointer;
   }
-
-  /* Fee rows */
-  .co-fee-row {
-    font-size: 0.85rem;
-    color: var(--co-text-secondary);
+  .y2k-btn-checkout:hover:not(:disabled) {
+    background: var(--magenta);
+    color: #fff;
+    text-shadow: none;
+    box-shadow: 0 0 25px rgba(255, 0, 85, 0.6);
+    transform: scale(1.02);
   }
-  .co-fee-row span:last-child { color: var(--co-text-primary); }
-  .co-fee-green { color: var(--co-green) !important; }
-
-  /* Grand total */
-  .co-grand-label {
-    font-family: 'Syne', sans-serif;
-    font-size: 0.95rem;
-    color: var(--co-text-primary);
-  }
-  .co-grand-amount {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.55rem;
-    font-weight: 800;
-    color: var(--co-red);
-    letter-spacing: -0.03em;
-  }
-
-  /* ── CTA — extends Bootstrap .btn ── */
-  .co-place-btn {
-    background: var(--co-btn-bg) !important;
-    color: var(--co-btn-text) !important;
-    border: none !important;
-    padding: 15px 20px !important;
-    font-family: 'Syne', sans-serif !important;
-    font-size: 0.95rem !important;
-    letter-spacing: 0.01em;
-    box-shadow: var(--co-shadow-btn);
-    transition: all 0.2s !important;
-  }
-  .co-place-btn:hover:not(:disabled) {
-    background: var(--co-red) !important;
-    color: #fff !important;
-    transform: translateY(-1px);
-    box-shadow: var(--co-shadow-btn-hv) !important;
-  }
-  .co-place-btn:active:not(:disabled) { transform: translateY(0) !important; }
-  .co-place-btn:disabled {
-    background: var(--co-btn-dis-bg) !important;
-    color: var(--co-btn-dis-text) !important;
+  .y2k-btn-checkout:disabled {
+    background: rgba(0,0,0,0.5);
+    border-color: var(--text-muted);
+    color: var(--text-muted);
+    text-shadow: none;
+    box-shadow: none;
     cursor: not-allowed;
-    box-shadow: none !important;
   }
 
-  /* Inline spinner inside button */
-  .co-btn-spinner {
-    width: 16px; height: 16px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: currentColor;
-    border-radius: 50%;
-    animation: spin 0.65s linear infinite;
+  .y2k-btn-magenta {
+    background: transparent;
+    border: 1px solid var(--magenta);
+    color: var(--magenta);
+    cursor: pointer;
+    font-family: 'Share Tech Mono', monospace;
+    font-weight: bold;
+    transition: all 0.2s;
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* Secure note */
-  .co-secure {
-    font-size: 0.72rem;
-    color: var(--co-text-micro);
-  }
-
-  /* ── Loading & empty screens ── */
-  .co-loading {
-    min-height: 60vh;
-    background: var(--co-bg-page);
-  }
-  .co-muted { color: var(--co-text-muted); }
-
-  .co-spinner {
-    width: 36px; height: 36px;
-    border: 3px solid var(--co-spinner-track);
-    border-top-color: var(--co-red);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
+  .y2k-btn-magenta:hover {
+    background: var(--magenta);
+    color: #fff;
+    box-shadow: 0 0 15px var(--magenta-dim);
   }
 
-  /* Back / browse button */
-  .co-back-btn {
-    background: var(--co-btn-bg) !important;
-    color: var(--co-btn-text) !important;
-    border: none !important;
-    font-family: 'Syne', sans-serif;
-    font-size: 0.88rem;
-    box-shadow: var(--co-shadow-btn);
-    transition: all 0.2s !important;
-  }
-  .co-back-btn:hover {
-    background: var(--co-red) !important;
-    color: #fff !important;
-    transform: translateY(-1px);
-    box-shadow: var(--co-shadow-btn-hv) !important;
-  }
+  /* PROGRESS BAR (Loading) */
+  .y2k-progress-bar { width: 100%; height: 12px; border: 1px solid var(--cyan-glow); background: #000; padding: 2px; }
+  .y2k-progress-fill { height: 100%; background: var(--cyan); width: 0%; animation: load ease-out forwards; }
+  @keyframes load { to { width: 100%; } }
 `;
