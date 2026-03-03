@@ -213,7 +213,14 @@ const styles = `
   /* BASE STYLES */
   .y2k-page {
     font-family: 'Share Tech Mono', monospace;
-    background-color: var(--bg-color);
+    background: 
+      linear-gradient(rgba(1, 3, 10, 0.8), rgba(1, 3, 10, 0.85)),
+      url('/y2k_fooddash_bg.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    
     min-height: 100vh;
     color: var(--text-main);
     position: relative;
