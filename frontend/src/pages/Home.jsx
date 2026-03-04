@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/axios";
 import ProductCard from "../components/ProductCard";
+import {Link } from "react-router-dom"
 
 export default function Home() {
   const [restaurants, setRestaurants] = useState([]);
@@ -138,7 +139,7 @@ export default function Home() {
                         <div className="position-relative overflow-hidden" style={{height: '220px'}}>
                           <div className="crosshair-center"></div>
                           <img
-                            src="https://i.pinimg.com/736x/87/00/40/870040715694c03eeaeecf572a1cdcb9.jpg"
+                            src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExbGRuNWVscDlyeTFiZDh1Zzk0aTBrNzMxZDZpNGEzeWVlc3ZlMXhlaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/OHVdwHnDT3sEE/giphy.gif"
                             alt="Radar view"
                             className="y2k-hero-img w-100 h-100 object-fit-cover"
                           />
@@ -194,27 +195,31 @@ export default function Home() {
                   <div className="row g-4">
                     {filteredRestaurants.map((r) => (
                       <div className="col-xl-4 col-lg-4 col-sm-6" key={r._id}>
-                        <div className="y2k-wire-card h-100 d-flex flex-column">
-                          <div className="y2k-card-header d-flex justify-content-between">
-                            <span>ID:{r._id.slice(-4).toUpperCase() || 'X99'}</span>
-                            <span className="text-cyan">PING:25ms</span>
-                          </div>
-                          <div className="y2k-card-img-wrap p-2 border-bottom-wire">
-                            <img src={r.image} alt={r.name} className="w-100 object-fit-cover" style={{height: '140px', filter: 'grayscale(0.3) contrast(1.2)'}} />
-                          </div>
-                          <div className="p-3 flex-grow-1 d-flex flex-column justify-content-between">
-                            <div>
-                              <div className="y2k-card-title text-truncate">{r.name}</div>
-                              <div className="y2k-card-addr text-truncate mt-1 text-muted">
-                                &gt; {r.address}
+
+                        {/* THE LINK WRAPPER */}
+                        <Link to={`/restaurant/${r._id}`} className="text-decoration-none">
+                          <div className="y2k-wire-card h-100 d-flex flex-column">
+                            <div className="y2k-card-header d-flex justify-content-between">
+                              <span>ID:{r._id.slice(-4).toUpperCase() || 'X99'}</span>
+                              <span className="text-cyan">PING:25ms</span>
+                            </div>
+                            <div className="y2k-card-img-wrap p-2 border-bottom-wire">
+                              <img src={r.image} alt={r.name} className="w-100 object-fit-cover" style={{height: '140px', filter: 'grayscale(0.3) contrast(1.2)'}} />
+                            </div>
+                            <div className="p-3 flex-grow-1 d-flex flex-column justify-content-between">
+                              <div>
+                                <div className="y2k-card-title text-truncate">{r.name}</div>
+                                <div className="y2k-card-addr text-truncate mt-1 text-muted">
+                                  &gt; {r.address}
+                                </div>
+                              </div>
+                              <div className="d-flex justify-content-between align-items-end mt-3">
+                                <span className="y2k-btn-outline px-2 py-1" style={{fontSize: '0.7rem'}}>CONNECT</span>
+                                <span className="text-cyan" style={{fontSize: '0.8rem'}}>LVL: 4.{Math.floor(Math.random() * 3) + 6}</span>
                               </div>
                             </div>
-                            <div className="d-flex justify-content-between align-items-end mt-3">
-                              <span className="y2k-btn-outline px-2 py-1" style={{fontSize: '0.7rem'}}>CONNECT</span>
-                              <span className="text-cyan" style={{fontSize: '0.8rem'}}>LVL: 4.{Math.floor(Math.random() * 3) + 6}</span>
-                            </div>
                           </div>
-                        </div>
+                        </Link>  
                       </div>
                     ))}
                   </div>

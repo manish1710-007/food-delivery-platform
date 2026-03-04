@@ -26,7 +26,7 @@ export default function RestaurantMenuForm({
     data.append("upload_preset", "fooddash");
 
     const res = await fetch(
-      "https://api.cloudinary.com/v1_1/dcl5zom8v/image/upload",
+      "https://api.cloudinary.com/v1_1/du4ly99ab/image/upload",
       {
         method: "POST",
         body: data

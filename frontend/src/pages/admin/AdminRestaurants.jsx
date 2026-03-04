@@ -107,7 +107,7 @@ export default function AdminRestaurants() {
     data.append("upload_preset", "fooddash");
 
     try {
-      const res = await fetch(`https://api.cloudinary.com/v1_1/dcl5zom8v/image/upload`, {
+      const res = await fetch(`https://api.cloudinary.com/v1_1/du4ly99ab/image/upload`, {
         method: "POST",
         body: data,
       });

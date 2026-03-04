@@ -135,26 +135,41 @@ export default function AdminProducts() {
     }
   }
 
+  // ------------------------------------------------------------------
+  // UPDATED IMAGE UPLOAD HANDLER: Catches specific Cloudinary Errors
+  // ------------------------------------------------------------------
   async function uploadImage(e) {
     const file = e.target.files[0];
     if (!file) return;
+    
     setUploading(true);
     addLog("> UPLOADING_SECURE_PACKET...");
     
     const data = new FormData();
     data.append("file", file);
-    data.append("upload_preset", "fooddash");
+    data.append("upload_preset", "fooddash"); // Ensure this preset exists in Cloudinary!
+
     try {
-      const res = await fetch("https://api.cloudinary.com/v1_1/dcl5zom8v/image/upload", { method: "POST", body: data });
+      const res = await fetch("https://api.cloudinary.com/v1_1/du4ly99ab/image/upload", { method: "POST", body: data });
       const json = await res.json();
+      
+      // Catch Cloudinary specific errors (like missing preset)
+      if (json.error) {
+        throw new Error(json.error.message);
+      }
+
       setForm({ ...form, image: json.secure_url });
       addLog("> PACKET_UPLOAD_SUCCESS [OK]");
+      
     } catch (err) {
-      console.error(err);
-      alert("SYS_ERR: UPLOAD_FAILED");
-      addLog("> SYS_ERR: UPLOAD_FAILED");
+      console.error("Cloudinary Error:", err);
+      alert(`SYS_ERR: UPLOAD_REJECTED\n${err.message}`);
+      
+      // Log the exact error to the terminal sidebar
+      const shortError = err.message.length > 20 ? err.message.substring(0, 20) + "..." : err.message;
+      addLog(`> ERR: ${shortError.toUpperCase()}`);
     } finally {
-        setUploading(false);
+      setUploading(false);
     }
   }
 
