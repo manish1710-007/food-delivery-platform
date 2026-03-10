@@ -69,7 +69,7 @@ export default function RestaurantPage() {
     <>
       <style>{styles}</style>
 
-      <div className="consumer-page w-100 pb-5">
+      <div className="consumer-page container-fluid px-0 pb-5">
 
         {/* ── 1. HERO BANNER ── */}
         <div className="restaurant-hero position-relative w-100">
@@ -100,7 +100,7 @@ export default function RestaurantPage() {
         </div>
 
         {/* ── 2. OVERLAPPING INFO CARD ── */}
-        <div className="container position-relative z-3 rp-info-wrap">
+        <div className="container-fluid px-4 position-relative z-3 rp-info-wrap">
           <div className="info-card p-4 p-md-5 shadow-lg text-start rp-animate-up">
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
 
@@ -162,7 +162,7 @@ export default function RestaurantPage() {
 
         {/* ── 3. STICKY CATEGORY NAV ── */}
         <div className={`category-nav-wrapper sticky-top shadow-sm mt-4 ${scrolled ? 'category-nav-wrapper--stuck' : ''}`}>
-          <div className="container">
+          <div className="container-fluid px-4">
             <div className="d-flex overflow-auto py-3 hide-scrollbar gap-2 align-items-center">
               <span className="text-muted small fw-bold text-uppercase me-2 d-none d-md-block" style={{ letterSpacing: "0.12em", whiteSpace: "nowrap" }}>
                 Menu:
@@ -182,7 +182,7 @@ export default function RestaurantPage() {
         </div>
 
         {/* ── 4. MENU GRID ── */}
-        <div className="container mt-5">
+        <div className="container-fluid px-4 mt-5">
           <div className="rp-menu-header mb-4">
             <div className="d-flex align-items-baseline gap-3">
               <h3 className="rp-menu-title mb-0">
@@ -199,7 +199,7 @@ export default function RestaurantPage() {
               No items found in this category.
             </div>
           ) : (
-            <div className="row g-4">
+            <div className="row g-4 mx-0">
               {filteredProducts.map((product, i) => (
                 <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6" key={product._id}>
                   <div
@@ -228,10 +228,17 @@ const styles = `
     --bg: #010308;
   }
 
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+
+  }
+
   .consumer-page {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background: var(--bg);
     overflow-x: hidden;
+    width: 100%;
   }
 
   /* ── CUSTOM SPINNER ── */
@@ -246,7 +253,10 @@ const styles = `
   @keyframes rp-spin { to { transform: rotate(360deg); } }
 
   /* ── HERO ── */
-  .restaurant-hero {
+  .restaurant-hero img {
+    width: 100%;
+    max-width: 100%;
+    display: block;
     height: 45vh;
     min-height: 320px;
     max-height: 480px;
