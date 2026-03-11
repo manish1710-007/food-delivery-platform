@@ -123,7 +123,7 @@ export default function Cart() {
             /* Layout Grid Shifted to 5 - 4 - 3 for better breathing room */
             <div className="row g-4 align-items-start">
 
-              {/* COL 1: Items List (col-xl-5) */}
+              {/*  Items List */}
               <div className="col-12 col-xl-5">
                 <div className="d-flex justify-content-between border-bottom-wire pb-2 mb-3">
                   <span className="text-cyan small">/// ALLOCATED_RESOURCES</span>
@@ -163,7 +163,7 @@ export default function Cart() {
                 </div>
               </div>
 
-              {/* COL 2: Transaction Log & Checkout Button (Widened to col-xl-4) */}
+              {/*  Transaction Log & Checkout Button  */}
               <div className="col-12 col-lg-6 col-xl-4">
                 <div className="position-sticky" style={{ top: "80px" }}>
                   <div className="d-flex justify-content-between border-bottom-wire border-magenta pb-2 mb-3">
@@ -216,7 +216,7 @@ export default function Cart() {
                 </div>
               </div>
 
-              {/* COL 3: System Diagnostics (col-xl-3) */}
+              {/* System Diagnostics  */}
               <div className="col-12 col-lg-6 col-xl-3 d-none d-lg-block">
                 <div className="position-sticky" style={{ top: "80px" }}>
                   <div className="d-flex justify-content-between border-bottom-wire pb-2 mb-3">

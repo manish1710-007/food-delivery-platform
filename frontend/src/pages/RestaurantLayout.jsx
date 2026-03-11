@@ -20,7 +20,7 @@ export default function RestaurantLayout() {
         
         <div className="container-fluid px-3 px-xl-4 py-4 position-relative z-1">
           
-          {/* ── THE COMMAND RIBBON (Top Navigation) ── */}
+          {/*  THE COMMAND RIBBON (Top Navigation)  */}
           <div className="y2k-wire-box border-cyan mb-4 p-0 overflow-hidden d-flex flex-column flex-lg-row shadow-lg">
             
             {/* Identification Block */}
@@ -62,7 +62,7 @@ export default function RestaurantLayout() {
 
           </div>
 
-          {/* ── THE INJECTED CONTENT (Outlet) ── */}
+          {/*  THE INJECTED CONTENT (Outlet)  */}
           <div className="y2k-content-area">
             <Outlet />
           </div>

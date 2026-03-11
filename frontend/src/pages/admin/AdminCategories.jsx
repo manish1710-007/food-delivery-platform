@@ -83,7 +83,7 @@ export default function AdminCategories() {
 
           <div className="row g-4 align-items-start">
 
-            {/* ── LEFT: Command Input & Logs (col-xl-5) ── */}
+            {/*  LEFT: Command Input & Logs  */}
             <div className="col-12 col-xl-5">
               <div className="position-sticky" style={{ top: "80px" }}>
                 
@@ -130,7 +130,7 @@ export default function AdminCategories() {
               </div>
             </div>
 
-            {/* ── RIGHT: Data Grid & Visualizer (col-xl-7) ── */}
+            {/*  RIGHT: Data Grid & Visualizer  */}
             <div className="col-12 col-xl-7">
               
               {/* Fake Memory Visualizer */}

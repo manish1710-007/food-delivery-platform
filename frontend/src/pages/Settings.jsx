@@ -51,7 +51,7 @@ export default function Settings() {
     addLog("> WARN: PURGE_COMMAND_INITIATED");
     if(window.confirm("SYS_WARN: IRREVERSIBLE ACTION. Are you absolutely sure you want to purge your data?")) {
       addLog("> FATAL: EXECUTING_DATA_PURGE...");
-      // Add actual delete logic here
+      
     } else {
       addLog("> PURGE_ABORTED_BY_USER");
     }
@@ -79,7 +79,7 @@ export default function Settings() {
 
           <div className="row g-4 align-items-start">
 
-            {/* ── LEFT: Config Options (col-xl-8) ── */}
+            {/*  LEFT: Config Options  */}
             <div className="col-12 col-xl-8 d-flex flex-column gap-4">
 
               {/* Security Section */}
@@ -214,7 +214,7 @@ export default function Settings() {
 
             </div>
 
-            {/* ── RIGHT: Diagnostic & Event Logs (col-xl-4) ── */}
+            {/*  RIGHT: Diagnostic & Event Logs  */}
             <div className="col-12 col-xl-4 d-none d-lg-block">
               <div className="position-sticky" style={{ top: "80px" }}>
                 

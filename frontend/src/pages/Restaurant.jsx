@@ -71,7 +71,7 @@ export default function RestaurantPage() {
 
       <div className="consumer-page container-fluid px-0 pb-5">
 
-        {/* ── 1. HERO BANNER ── */}
+        {/*  HERO BANNER  */}
         <div className="restaurant-hero position-relative w-100">
 
           {/* Floating back btn — becomes glowy when scrolled */}
@@ -99,7 +99,7 @@ export default function RestaurantPage() {
           </div>
         </div>
 
-        {/* ── 2. OVERLAPPING INFO CARD ── */}
+        {/*  OVERLAPPING INFO CARD  */}
         <div className="container-fluid px-4 position-relative z-3 rp-info-wrap">
           <div className="info-card p-4 p-md-5 shadow-lg text-start rp-animate-up">
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
@@ -160,7 +160,7 @@ export default function RestaurantPage() {
           </div>
         </div>
 
-        {/* ── 3. STICKY CATEGORY NAV ── */}
+        {/*  STICKY CATEGORY NAV  */}
         <div className={`category-nav-wrapper sticky-top shadow-sm mt-4 ${scrolled ? 'category-nav-wrapper--stuck' : ''}`}>
           <div className="container-fluid px-4">
             <div className="d-flex overflow-auto py-3 hide-scrollbar gap-2 align-items-center">
@@ -181,7 +181,7 @@ export default function RestaurantPage() {
           </div>
         </div>
 
-        {/* ── 4. MENU GRID ── */}
+        {/*  MENU GRID  */}
         <div className="container-fluid px-4 mt-5">
           <div className="rp-menu-header mb-4">
             <div className="d-flex align-items-baseline gap-3">

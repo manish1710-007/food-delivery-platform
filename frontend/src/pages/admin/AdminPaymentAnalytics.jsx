@@ -123,7 +123,7 @@ export default function AdminPaymentAnalytics() {
 
                     <div className="row g-4 align-items-start">
                         
-                        {/* ── LEFT: The Revenue Chart (col-xl-9) ── */}
+                        {/*  LEFT: The Revenue Chart  */}
                         <div className="col-12 col-xl-9">
                             <div className="y2k-wire-box border-cyan p-3 p-md-4 text-start">
                                 <div className="d-flex justify-content-between border-bottom-wire border-cyan pb-2 mb-4">
@@ -180,7 +180,7 @@ export default function AdminPaymentAnalytics() {
                             </div>
                         </div>
 
-                        {/* ── RIGHT: Active Transaction Ledger (col-xl-3) ── */}
+                        {/*  RIGHT: Active Transaction Ledger  */}
                         <div className="col-12 col-xl-3 d-none d-xl-block">
                             <div className="position-sticky" style={{ top: "80px" }}>
                                 <div className="y2k-wire-box border-magenta p-0 h-100 d-flex flex-column text-start bg-magenta-dim">

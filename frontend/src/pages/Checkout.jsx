@@ -91,7 +91,7 @@ export default function Checkout() {
   const _foodEmojis = ["🍔", "🍕", "🌮", "🍜", "🍱", "🥗", "🍛", "🌯"];
   const _getEmoji = (name = "") => _foodEmojis[name.charCodeAt(0) % _foodEmojis.length];
 
-  /* ── Loading ── */
+  /*  Loading  */
   if (loading) {
     return (
       <>
@@ -108,7 +108,7 @@ export default function Checkout() {
     );
   }
 
-  /* ── Empty cart ── */
+  /*  Empty cart  */
   if (cart.length === 0) {
     return (
       <>
@@ -154,7 +154,7 @@ export default function Checkout() {
 
           <div className="row g-4 align-items-start">
 
-            {/* ── LEFT: Forms (col-xl-5) ── */}
+            {/*  LEFT: Forms  */}
             <div className="col-12 col-xl-5 d-flex flex-column gap-4">
 
               {/* Delivery Details */}
@@ -228,7 +228,7 @@ export default function Checkout() {
 
             </div>
 
-            {/* ── MIDDLE: Order Summary (col-xl-4) ── */}
+            {/*  MIDDLE: Order Summary (col-xl-4)  */}
             <div className="col-12 col-lg-6 col-xl-4">
               <div className="position-sticky" style={{ top: "80px" }}>
                 
@@ -294,7 +294,7 @@ export default function Checkout() {
               </div>
             </div>
 
-            {/* ── RIGHT: System Diagnostics (col-xl-3) ── */}
+            {/*  RIGHT: System Diagnostics  */}
             <div className="col-12 col-lg-6 col-xl-3 d-none d-xl-block">
               <div className="position-sticky" style={{ top: "80px" }}>
                 

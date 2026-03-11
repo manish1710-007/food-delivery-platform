@@ -87,7 +87,7 @@ export default function MyOrders() {
 
           <div className="row g-4 align-items-start">
 
-            {/* ── LEFT: Order Archive List (col-xl-9) ── */}
+            {/*  LEFT: Order Archive List  */}
             <div className="col-12 col-xl-9">
               <div className="y2k-wire-box border-cyan p-3 p-md-4">
                 <div className="d-flex justify-content-between border-bottom-wire border-cyan pb-2 mb-3">
@@ -139,7 +139,7 @@ export default function MyOrders() {
               </div>
             </div>
 
-            {/* ── RIGHT: Archive Diagnostics (col-xl-3) ── */}
+            {/*  RIGHT: Archive Diagnostics  */}
             <div className="col-12 col-xl-3 d-none d-xl-block">
               <div className="position-sticky" style={{ top: "80px" }}>
                 <div className="y2k-wire-box p-4 text-start h-100 d-flex flex-column gap-3 border-magenta">

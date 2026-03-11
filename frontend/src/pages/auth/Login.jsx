@@ -61,7 +61,7 @@ export default function Login() {
 
         <div className="row g-0 h-100 position-relative z-1">
           
-          {/* ── LEFT: Auth Console ── */}
+          {/*  LEFT: Auth Console  */}
           <div className="col-12 col-md-5 col-lg-4 d-flex flex-column justify-content-center align-items-center y2k-auth-panel border-end border-cyan position-relative">
             {/* Background Grid for the panel */}
             <div className="y2k-grid-bg"></div>
@@ -151,7 +151,7 @@ export default function Login() {
             </div>
           </div>
 
-          {/* ── RIGHT: System Visual (Hidden on mobile) ── */}
+          {/*  RIGHT: System Visual (Hidden on mobile)  */}
           <div className="col-md-7 col-lg-8 d-none d-md-block position-relative y2k-hero-panel bg-dark overflow-hidden">
             
             {/* The Image (Filtered heavily to fit the vibe) */}

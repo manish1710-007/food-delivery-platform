@@ -108,7 +108,7 @@ export default function AdminDashboard() {
 
           <div className="row g-4 align-items-start">
 
-            {/* ── LEFT: Core Modules Grid (col-xl-9) ── */}
+            {/*  LEFT: Core Modules Grid   */}
             <div className="col-12 col-xl-9">
               <div className="d-flex justify-content-between border-bottom-wire border-cyan pb-2 mb-3">
                 <span className="text-cyan small font-monospace">/// EXECUTABLE_MODULES</span>
@@ -154,7 +154,7 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* ── RIGHT: System Diagnostics & Logs (col-xl-3) ── */}
+            {/*  RIGHT: System Diagnostics & Logs  */}
             <div className="col-12 col-xl-3 d-none d-xl-block">
               <div className="position-sticky" style={{ top: "80px" }}>
                 

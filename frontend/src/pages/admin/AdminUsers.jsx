@@ -119,7 +119,7 @@ export default function AdminUsers() {
 
                     <div className="row g-4 align-items-start">
                         
-                        {/* ── LEFT: Filters & User Matrix (col-xl-9) ── */}
+                        {/*  LEFT: Filters & User Matrix  */}
                         <div className="col-12 col-xl-9">
                             
                             {/* Query Panel */}
@@ -225,7 +225,7 @@ export default function AdminUsers() {
                             </div>
                         </div>
 
-                        {/* ── RIGHT: Active Connections (col-xl-3) ── */}
+                        {/*  RIGHT: Active Connections  */}
                         <div className="col-12 col-xl-3 d-none d-xl-block">
                             <div className="position-sticky" style={{ top: "80px" }}>
                                 <div className="y2k-wire-box border-cyan p-0 h-100 d-flex flex-column text-start">

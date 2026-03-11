@@ -135,9 +135,6 @@ export default function AdminProducts() {
     }
   }
 
-  // ------------------------------------------------------------------
-  // UPDATED IMAGE UPLOAD HANDLER: Catches specific Cloudinary Errors
-  // ------------------------------------------------------------------
   async function uploadImage(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -153,7 +150,7 @@ export default function AdminProducts() {
       const res = await fetch("https://api.cloudinary.com/v1_1/du4ly99ab/image/upload", { method: "POST", body: data });
       const json = await res.json();
       
-      // Catch Cloudinary specific errors (like missing preset)
+      // Catch Cloudinary specific errors
       if (json.error) {
         throw new Error(json.error.message);
       }
@@ -220,7 +217,7 @@ export default function AdminProducts() {
 
           <div className="row g-4 align-items-start">
 
-            {/* ── LEFT: Filters & Product List (col-xl-9) ── */}
+            {/*  LEFT: Filters & Product List  */}
             <div className="col-12 col-xl-9">
               
               {/* Query Panel */}
@@ -322,7 +319,7 @@ export default function AdminProducts() {
               </div>
             </div>
 
-            {/* ── RIGHT: Storage Diagnostics (col-xl-3) ── */}
+            {/*  RIGHT: Storage Diagnostics  */}
             <div className="col-12 col-xl-3 d-none d-xl-block">
               <div className="position-sticky" style={{ top: "80px" }}>
                 
@@ -369,7 +366,7 @@ export default function AdminProducts() {
           </div>
         </div>
 
-        {/* ── MODAL: TERMINAL PROMPT ── */}
+        {/*  MODAL: TERMINAL PROMPT  */}
         {showModal && (
           <div className="y2k-modal-overlay d-flex align-items-center justify-content-center">
             <div className="y2k-wire-box border-cyan p-0 text-start w-100" style={{ maxWidth: "600px", background: "#02060d" }}>

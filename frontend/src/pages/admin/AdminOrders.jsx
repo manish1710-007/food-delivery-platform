@@ -130,7 +130,7 @@ export default function AdminOrders() {
                     </div>
 
                     <div className="row g-4 align-items-start">
-                        {/* ── LEFT: Filters & List (col-xl-9) ── */}
+                        {/*  LEFT: Filters & List   */}
                         <div className="col-12 col-xl-9">
                             
                             {/* Search & Filters */}
@@ -246,7 +246,7 @@ export default function AdminOrders() {
                             </div>
                         </div>
 
-                        {/* ── RIGHT: Tactical Radar (col-xl-3) ── */}
+                        {/*  RIGHT: Tactical Radar   */}
                         <div className="col-12 col-xl-3 d-none d-xl-block">
                             <div className="position-sticky" style={{ top: "80px" }}>
                                 <div className="y2k-wire-box p-4 text-start h-100 d-flex flex-column gap-3 border-cyan">
@@ -277,7 +277,7 @@ export default function AdminOrders() {
                     </div>
                 </div>
 
-                {/* ── MODAL: ORDER INSPECTOR ── */}
+                {/*  MODAL: ORDER INSPECTOR  */}
                 {viewingOrder && (
                     <div className="y2k-modal-overlay d-flex align-items-center justify-content-center">
                         <div className="y2k-wire-box border-cyan p-0 text-start w-100" style={{ maxWidth: "700px", background: "#02060d" }}>

@@ -168,7 +168,7 @@ export default function AdminRestaurants() {
 
           <div className="row g-4 align-items-start">
 
-            {/* ── LEFT: Node List & Search (col-xl-9) ── */}
+            {/*  LEFT: Node List & Search */}
             <div className="col-12 col-xl-9">
               
               {/* Search Bar */}
@@ -257,7 +257,7 @@ export default function AdminRestaurants() {
               </div>
             </div>
 
-            {/* ── RIGHT: System Diagnostics (col-xl-3) ── */}
+            {/*  RIGHT: System Diagnostics  */}
             <div className="col-12 col-xl-3 d-none d-xl-block">
               <div className="position-sticky" style={{ top: "80px" }}>
                 <div className="y2k-wire-box p-4 text-start h-100 d-flex flex-column gap-3 border-cyan">

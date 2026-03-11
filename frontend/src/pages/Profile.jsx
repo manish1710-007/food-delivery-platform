@@ -57,7 +57,7 @@ export default function Profile() {
 
           <div className="row g-4 align-items-start">
 
-            {/* ── LEFT: Config Form (col-xl-8) ── */}
+            {/*  LEFT: Config Form  */}
             <div className="col-12 col-xl-8">
               
               <div className="y2k-wire-box border-cyan p-4">
@@ -150,7 +150,7 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* ── RIGHT: System ID Card & Logs (col-xl-4) ── */}
+            {/*  RIGHT: System ID Card & Logs  */}
             <div className="col-12 col-xl-4 d-flex flex-column gap-4">
               
               {/* ID Badge Visual */}
