@@ -25,6 +25,7 @@ const app = express();
 // CORS CONFIGURATION (Must be first!)
 
 app.use(
+  //update here
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
     credentials: true,
