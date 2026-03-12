@@ -1,11 +1,15 @@
 import axios from "axios";
 
+// ENVIRONMENT AWARE ROUTING
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
 const api = axios.create({
-  baseURL: "http://localhost:5000/api",
-  withCredentials: true,
+  baseURL: API_BASE_URL,
+  withCredentials: true, // Allows secure cookies to cross domains
 });
 
-// request interceptor
+// REQUEST INTERCEPTOR
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
@@ -19,13 +23,12 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// response interceptor 
+// RESPONSE INTERCEPTOR (Silent Refresh Protocol)
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // Access token expired
     if (
       error.response?.status === 401 &&
       !originalRequest._retry
@@ -34,9 +37,9 @@ api.interceptors.response.use(
 
       try {
         const res = await axios.post(
-          "http://localhost:5000/api/auth/refresh",
+          `${API_BASE_URL}/auth/refresh`,
           {},
-          { withCredentials: true }
+          { withCredentials: true } 
         );
 
         const newAccessToken = res.data.accessToken;
@@ -47,7 +50,6 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh failed → force logout
         localStorage.removeItem("accessToken");
         localStorage.removeItem("user");
 
