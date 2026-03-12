@@ -1,51 +1,72 @@
 const router = require('express').Router();
-const { authMiddleware, permit } = require('../middlewares/authMiddleware');
+const { authMiddleware, permit, requireApprovedRestaurant } = require('../middlewares/authMiddleware');
 const Restaurant = require('../models/Restaurant');
 const Product = require('../models/Product');
 
-// Get my restaurant
-router.put("/my", authMiddleware, permit("restaurant"), async (req, res) => {
-    const restaurant = await Restaurant.findOne({ owner: req.user._id });
+
+// GLOBAL PROTECTION
+router.use(authMiddleware, permit("restaurant"), requireApprovedRestaurant);
+
+// RESTAURANT PROFILE MANAGEMENT
+
+// GET My Restaurant Profile
+router.get("/my", async (req, res) => {
+    const restaurant = await Restaurant.findById(req.user.restaurant);
     res.json(restaurant);       
 });
 
-// Update my restaurant
-router.put("/my", authMiddleware, permit("restaurant"), async (req, res) => {
-    const restaurant = await Restaurant.findOneAndUpdate(
-        { owner: req.user._id },
-        req.body,
-        { new: true }
+// UPDATE My Restaurant Profile
+router.put("/my", async (req, res) => {
+    const { name, address, phone, image, cuisine, location } = req.body;
+    
+    const restaurant = await Restaurant.findByIdAndUpdate(
+        req.user.restaurant,
+        { name, address, phone, image, cuisine, location },
+        { new: true, runValidators: true }
     );
     res.json(restaurant);       
 });
 
-// get my menu
-router.get("/menu", authMiddleware, permit("restaurant"), async (req, res) => {
-    const restaurant = await Restaurant.findOne({ owner: req.user._id });
-    const items = await Product.find({ restaurant: restaurant._id });
+// MENU / PRODUCT MANAGEMENT
+
+// GET My Menu
+router.get("/menu", async (req, res) => {
+    const items = await Product.find({ restaurant: req.user.restaurant });
     res.json(items);       
 });
 
-// add item 
-router.post("/menu", authMiddleware, permit("restaurant"), async (req, res) => {
-    const restaurant = await Restaurant.findOne({ owner: req.user._id });
+// ADD Item to Menu
+router.post("/menu", async (req, res) => {
     const item = await Product.create({
         ...req.body,
-        restaurant: restaurant._id
+        restaurant: req.user.restaurant
     });
     res.status(201).json(item);
 });
 
-// update item
-router.put("/menu/:id", authMiddleware, permit("restaurant"), async (req, res) => {
-    const item = await Product.findOneAndUpdate(req.params.id, req.body, { new: true });
+// UPDATE Item in Menu
+router.put("/menu/:id", async (req, res) => {
+
+    const item = await Product.findOneAndUpdate(
+        { _id: req.params.id, restaurant: req.user.restaurant }, 
+        req.body, 
+        { new: true, runValidators: true }
+    );
+
+    if (!item) return res.status(404).json({ message: "Product not found or unauthorized" });
     res.json(item);
 });
 
-// delete item
-router.delete("/menu/:id", authMiddleware, permit("restaurant"), async (req, res) => {
-    await Product.findByIdAndDelete(req.params.id);
-    res.json({ message: "Item deleted" });
+// DELETE Item from Menu
+router.delete("/menu/:id", async (req, res) => {
+
+    const item = await Product.findOneAndDelete({ 
+        _id: req.params.id, 
+        restaurant: req.user.restaurant 
+    });
+
+    if (!item) return res.status(404).json({ message: "Product not found or unauthorized" });
+    res.json({ message: "Item purged from the menu registry." });
 });
 
-module.exports = router;    
+module.exports = router;

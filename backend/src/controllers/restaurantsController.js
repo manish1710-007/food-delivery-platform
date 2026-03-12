@@ -1,47 +1,66 @@
 const Restaurant = require('../models/Restaurant');
-const Product = require('../models/Product'); // to return menu on getOne (if product model exists)
+const Product = require('../models/Product');
+const mongoose = require('mongoose');
 
-// List restaurant (public) with optional filters: q (text), cuisine
+// GET 
 const list = async (req, res, next) => {
   try {
     const q = {};
-    if (req.query.cuisine) q.cuisine = { $in: [req.query.cuisine] };
-    if (req.query.q) q.name = { $regex: req.query.q, $options: 'i' };
+    
+    if (req.query.cuisine) {
+      q.cuisine = { $in: [req.query.cuisine] };
+    }
+    
+    if (req.query.q) {
+      // Escape regex to prevent injection
+      const searchStr = String(req.query.q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      q.name = { $regex: searchStr, $options: 'i' };
+    }
 
-    const restaurant = await Restaurant.find({ status: "approved" });
-    return res.json(restaurant);
+    const restaurants = await Restaurant.find({ ...q, status: "approved" });
+    
+    return res.json(restaurants);
   } catch (err) {
+    console.error("[SYS.ERR] Restaurant directory query failed:", err);
     next(err);
   }
 };
 
-// Get a single restaurant + its menu (public)
+
+// GET
 const getOne = async (req, res, next) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid node ID format' });
+    }
+
     const rest = await Restaurant.findById(req.params.id).populate('owner', 'name email');
-    if (!rest) return res.status(404).json({ message: 'Restaurant not found' });
+    if (!rest) return res.status(404).json({ message: 'Restaurant not found in databank' });
 
     let menu = [];
     try {
-      menu = await Product.find({ restaurant: rest._id, available: true }).limit(500).lean();
+      menu = await Product.find({ restaurant: rest._id }).limit(500).lean();
     } catch (e) {
-      // If product model or collection missing, ignore and return empty menu
+      console.warn(`[SYS.WARN] Could not fetch menu for ${rest._id}`);
       menu = [];
     }
 
     return res.json({ restaurant: rest, menu });
   } catch (err) {
+    console.error("[SYS.ERR] Restaurant fetch failed:", err);
     next(err);
   }
 };
 
-// Create a restaurant 
+// POST
 const create = async (req, res, next) => {
   try {
     const { name, address, phone, cuisine, image, location } = req.body;
-    if (!name) return res.status(400).json({ message: 'Name is required' });
+    
+    if (!name) return res.status(400).json({ message: 'Restaurant name is required' });
 
-    const owner = req.user ? req.user._id : null; // requires auth middleware
+    const owner = req.user ? req.user._id : null; 
+    
     const rest = await Restaurant.create({
       owner,
       name,
@@ -49,55 +68,77 @@ const create = async (req, res, next) => {
       phone,
       image,
       cuisine: Array.isArray(cuisine) ? cuisine : (cuisine ? [cuisine] : []),
-      location: location || undefined
+      location: location || undefined,
+      status: "pending" // Force pending status on creation for security
     });
 
     res.status(201).json(rest);
   } catch (err) {
+    console.error("[SYS.ERR] Restaurant creation failed:", err);
     next(err);
   }
 };
 
-// Update restaurant 
+
+// PUT/PATCH
 const update = async (req, res, next) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid node ID format' });
+    }
+
     const rest = await Restaurant.findById(req.params.id);
     if (!rest) return res.status(404).json({ message: 'Restaurant not found' });
 
-    // If the user is a 'Restaurant' role, ensure they own it
+    // Role verification
     if (req.user && req.user.role === 'Restaurant' && String(rest.owner) !== String(req.user._id)) {
-      return res.status(403).json({ message: 'Forbidden' });
+      return res.status(403).json({ message: 'Forbidden: You do not have clearance for this node' });
     }
 
-    // apply updates
-    Object.assign(rest, req.body);
+    const { name, address, phone, cuisine, image, location } = req.body;
+    
+    if (name !== undefined) rest.name = name;
+    if (address !== undefined) rest.address = address;
+    if (phone !== undefined) rest.phone = phone;
+    if (image !== undefined) rest.image = image;
+    if (location !== undefined) rest.location = location;
+    if (cuisine !== undefined) {
+      rest.cuisine = Array.isArray(cuisine) ? cuisine : (cuisine ? [cuisine] : []);
+    }
+
     await rest.save();
     return res.json(rest);
   } catch (err) {
+    console.error("[SYS.ERR] Restaurant update failed:", err);
     next(err);
   }
 };
 
-// Delete restaurant 
+
+// DELETE
 const remove = async (req, res, next) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid node ID format' });
+    }
+
     const rest = await Restaurant.findById(req.params.id);
     if (!rest) return res.status(404).json({ message: 'Restaurant not found' });
 
     if (req.user && req.user.role === 'Restaurant' && String(rest.owner) !== String(req.user._id)) {
-      return res.status(403).json({ message: 'Forbidden' });
+      return res.status(403).json({ message: 'Forbidden: Unauthorized deletion attempt' });
     }
 
-    // optional: remove products for this restaurant
     try {
       await Product.deleteMany({ restaurant: rest._id });
     } catch (e) {
-      // ignore if Product doesn't exist
+      console.warn(`[SYS.WARN] Failed to purge products for ${rest._id}`);
     }
 
     await rest.deleteOne();
-    return res.json({ message: 'Restaurant deleted' });
+    return res.json({ message: `[${rest.name}] and all associated data purged from the mainframe.` });
   } catch (err) {
+    console.error("[SYS.ERR] Restaurant deletion failed:", err);
     next(err);
   }
 };

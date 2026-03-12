@@ -2,36 +2,37 @@ const router = require('express').Router();
 const { authMiddleware, permit } = require('../middlewares/authMiddleware');
 const prodCtrl = require('../controllers/productController');
 
-console.log('prodCtrl:', prodCtrl);
-console.log('authMiddleware:', typeof authMiddleware, 'permit:', typeof permit);
-console.log('prodCtrl.create:', typeof prodCtrl.create);
 
-console.log('Product routes loaded');
+// PUBLIC PRODUCT NODES
 
-// Public routes
 router.get('/', prodCtrl.list);
 
+// Fetch specific product data by ID
 router.get('/:id', prodCtrl.getOne);
 
-// Protected routes
+// PROTECTED MANAGEMENT NODES
+
+// Create new product (Only for verified Restaurant owners or Admins)
 router.post(
     '/',
     authMiddleware,
-    permit('Restaurant','admin'),
+    permit('restaurant', 'admin'), 
     prodCtrl.create
 );
 
+// Update product data
 router.patch(
     '/:id',
     authMiddleware,
-    permit('Restaurant','admin'),
+    permit('restaurant', 'admin'),
     prodCtrl.update 
 );
 
+// Purge product from the registry
 router.delete(
     '/:id',
     authMiddleware,
-    permit('Restaurant','admin'),
+    permit('restaurant', 'admin'),
     prodCtrl.remove
 );
 

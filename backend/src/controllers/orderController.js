@@ -3,7 +3,9 @@ const Cart = require('../models/Cart');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 
-//calculate total & snapshot product info
+
+// UTILS
+
 const buildOrderItems = async (items) => {
   const productIds = items.map(i => i.product);
   const products = await Product.find({ _id: { $in: productIds } }).lean();
@@ -35,34 +37,34 @@ const buildOrderItems = async (items) => {
   return { orderItems, total };
 };
 
-
-//checkout from cart
+// CONTROLLERS
 const checkoutFromCart = async (req, res, next) => {
   try {
-    const { restaurant, deliveryAddress, phone, paymentMethod } = req.body;
+    const { deliveryAddress, phone, paymentMethod } = req.body;
 
-    if (!restaurant || !deliveryAddress || !phone) {
-      return res.status(400).json({ message: 'Missing checkout fields' });
+    if (!deliveryAddress || !phone) {
+      return res.status(400).json({ message: 'Delivery details missing' });
     }
 
+    // Fetch cart with populated products
     const cart = await Cart.findOne({ user: req.user._id })
-      .populate('items.product', 'name price');
+      .populate('items.product');
 
     if (!cart || cart.items.length === 0) {
       return res.status(400).json({ message: 'Cart is empty' });
     }
 
-    // Filter out "ghost" items
     const validItems = cart.items.filter(item => item.product != null);
 
     if (validItems.length === 0){
-      cart.items = [];
-      await cart.save();
-      return res.status(400).json({ message: 'The items in your cart are no longer available on the menu.'});
+  
+      await Cart.updateOne({ user: req.user._id }, { $set: { items: [] } });
+      return res.status(400).json({ message: 'Items in cart are no longer available.' });
     }
 
-    let totalPrice = 0;
+    const restaurantId = validItems[0].product.restaurant;
 
+    let totalPrice = 0;
     const orderItems = validItems.map(item => {
       const lineTotal = item.product.price * item.quantity;
       totalPrice += lineTotal;
@@ -77,7 +79,7 @@ const checkoutFromCart = async (req, res, next) => {
 
     const order = await Order.create({
       user: req.user._id,
-      restaurant,
+      restaurant: restaurantId,
       items: orderItems,
       totalPrice,
       paymentMethod: paymentMethod || 'cod',
@@ -86,15 +88,14 @@ const checkoutFromCart = async (req, res, next) => {
       phone
     });
 
-    // Clear cart
-    cart.items = [];
-    await cart.save();
+    await Cart.updateOne({ user: req.user._id }, { $set: { items: [] } });
 
     return res.status(201).json({
       message: 'Order placed successfully',
       order
     });
   } catch (err) {
+    console.error("[SYS.ERR] Checkout Failed:", err);
     next(err);
   }
 };
@@ -128,7 +129,6 @@ const createOrder = async (req, res, next) => {
       phone
     });
 
-    // delete cart ONLY after success
     await Cart.findOneAndDelete({ user: req.user._id });
 
     return res.status(201).json({
@@ -140,7 +140,6 @@ const createOrder = async (req, res, next) => {
   }
 };
 
-
 const getOrderById = async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.id)
@@ -150,13 +149,12 @@ const getOrderById = async (req, res, next) => {
 
     if (!order) return res.status(404).json({ message: 'Order not found' });
 
-    // users can only see their own orders; admins/restaurant can see all
     if (
       String(order.user._id) !== String(req.user._id) &&
       req.user.role !== 'admin' &&
       req.user.role !== 'Restaurant'
     ) {
-      return res.status(403).json({ message: 'Forbidden' });
+      return res.status(403).json({ message: 'Forbidden access to order data' });
     }
 
     return res.json(order);
@@ -179,43 +177,24 @@ const getMyOrders = async (req, res, next) => {
 
 const listOrders = async (req, res, next) => {
   try {
-    const {
-      status,
-      paymentStatus,
-      from,
-      to,
-      search,
-      page = 1,
-      limit = 10
-    } = req.query;
-
+    const { status, paymentStatus, from, to, search, page = 1, limit = 10 } = req.query;
     const filter = {};
 
-    // Role restriction
     if (req.user.role === "Restaurant") {
       if (req.query.restaurant && mongoose.Types.ObjectId.isValid(req.query.restaurant)) {
         filter.restaurant = req.query.restaurant;
       }
     }
 
-    // Status filter
-    if (status) {
-      filter.status = status;
-    }
+    if (status) filter.status = status;
+    if (paymentStatus) filter.paymentStatus = paymentStatus;
 
-    // Payment filter
-    if (paymentStatus) {
-      filter.paymentStatus = paymentStatus;
-    }
-
-    // Date range
     if (from || to) {
       filter.createdAt = {};
       if (from) filter.createdAt.$gte = new Date(from);
       if (to) filter.createdAt.$lte = new Date(to);
     }
 
-    // Search by order ID
     if (search && mongoose.Types.ObjectId.isValid(search)) {
       filter._id = search;
     }
@@ -244,22 +223,13 @@ const listOrders = async (req, res, next) => {
   }
 };
 
-
-
 const updateOrderStatus = async (req, res, next) => {
   try {
     const { status } = req.body;
-
-    const allowedStatuses = [
-      'accepted',
-      'preparing',
-      'on_the_way',
-      'delivered',
-      'cancelled'
-    ];
+    const allowedStatuses = ['accepted', 'preparing', 'on_the_way', 'delivered', 'cancelled'];
 
     if (!allowedStatuses.includes(status)) {
-      return res.status(400).json({ message: 'Invalid status' });
+      return res.status(400).json({ message: 'Invalid status update' });
     }
 
     const order = await Order.findById(req.params.id);
@@ -267,24 +237,20 @@ const updateOrderStatus = async (req, res, next) => {
       return res.status(404).json({ message: 'Order not found' });
     }
 
-    // Admin OR restaurant owner
-    if (
-      req.user.role === 'Restaurant' &&
-      String(order.restaurant) !== String(req.user.restaurant)
-    ) {
-      return res.status(403).json({ message: 'Forbidden' });
+    
+    if (req.user.role === 'Restaurant') {
+      if (!req.user.restaurant || String(order.restaurant) !== String(req.user.restaurant)) {
+         return res.status(403).json({ message: 'Forbidden: You do not own this order' });
+      }
     }
 
     if (['delivered', 'cancelled'].includes(order.status)) {
-      return res.status(400).json({
-        message: `Order already ${order.status}`
-      });
+      return res.status(400).json({ message: `Order already marked as ${order.status}` });
     }
 
     order.status = status;
     await order.save();
 
-    // Emit socket event (non-blocking)
     const io = req.app.get('io');
     if (io) {
       io.to(order._id.toString()).emit('orderUpdated', {
@@ -293,27 +259,18 @@ const updateOrderStatus = async (req, res, next) => {
       });
     }
 
-    return res.json({
-      message: 'Order status updated',
-      order
-    });
+    return res.json({ message: 'Order status updated', order });
   } catch (err) {
     next(err);
   }
 };
 
-
-// marks order as paid 
 const markPaid = async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ message: 'Order not found' });
 
-    // user can mark their own order paid; admin can mark any
-    if (
-      String(order.user) !== String(req.user._id) &&
-      req.user.role !== 'admin'
-    ) {
+    if (String(order.user) !== String(req.user._id) && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Forbidden' });
     }
 

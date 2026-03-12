@@ -6,13 +6,12 @@ const cartItemSchema = new mongoose.Schema({
     ref: 'Product',
     required: true
   },
-  
   quantity: {
     type: Number,
     default: 1,
-    min: 1
+    min: [1, 'Quantity cannot be less than 1']
   }
-}, {_id: true});
+}, { _id: true });
 
 const cartSchema = new mongoose.Schema(
   {
@@ -24,7 +23,20 @@ const cartSchema = new mongoose.Schema(
     },
     items: [cartItemSchema]
   },
-  { timestamps: true }
+  { 
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  }
 );
+
+// VIRTUAL: CALCULATE CART TOTAL
+cartSchema.virtual('cartTotal').get(function() {
+  if (!this.items) return 0;
+  return this.items.reduce((acc, item) => {
+    const price = item.product?.price || 0;
+    return acc + (price * item.quantity);
+  }, 0);
+});
 
 module.exports = mongoose.model('Cart', cartSchema);

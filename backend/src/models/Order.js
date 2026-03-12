@@ -6,8 +6,8 @@ const OrderItemSchema = new mongoose.Schema({
     ref: 'Product',
     required: true
   },
-  name: { type: String, required: true },   // snapshot
-  price: { type: Number, required: true },  // snapshot
+  name: { type: String, required: true },
+  price: { type: Number, required: true },
   quantity: { type: Number, required: true, min: 1 }
 });
 
@@ -16,12 +16,14 @@ const OrderSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true
+      required: true,
+      index: true 
     },
     restaurant: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Restaurant',
-      required: true
+      required: true,
+      index: true 
     },
     items: {
       type: [OrderItemSchema],
@@ -51,17 +53,31 @@ const OrderSchema = new mongoose.Schema(
         'delivered',
         'cancelled'
       ],
-      default: 'pending'
+      default: 'pending',
+      index: true
     },
 
-    stripeSessionId: String,
+    // Stripe Telemetry
+    stripeSessionId: { type: String, index: true },
     stripePaymentIntentId: String,
     paidAt: Date,
 
     deliveryAddress: { type: String, required: true },
     phone: { type: String, required: true }
   },
-  { timestamps: true }
+  { 
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  }
 );
+
+// MIDDLEWARE: AUTO-SET PAID_AT
+OrderSchema.pre('save', function(next) {
+  if (this.isModified('paymentStatus') && this.paymentStatus === 'paid') {
+    this.paidAt = new Date();
+  }
+  next();
+});
 
 module.exports = mongoose.model('Order', OrderSchema);

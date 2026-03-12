@@ -1,23 +1,21 @@
-
 const router = require('express').Router();
 const { authMiddleware, permit } = require('../middlewares/authMiddleware');
 const restCtrl = require('../controllers/restaurantsController');
 
-console.log('restaurantRoutes loaded')
+// PUBLIC RESTAURANT NODES
 
-// log every request to this router
-router.use((req, res, next) => {
-    console.log('Restaurant route hit:', req.method, req.originalUrl);
-    next();
-});
-
-// public list & details
 router.get('/', restCtrl.list);
+
+// View specific restaurant profile and its menu
 router.get('/:id', restCtrl.getOne);
 
-// protected (restaurant owners, admin)
+
+// PROTECTED MANAGEMENT NODES
+
 router.post('/', authMiddleware, restCtrl.create);
-router.patch('/:id', authMiddleware, permit('Restaurant','admin'), restCtrl.update);
-router.delete('/:id', authMiddleware, permit('Restaurant','admin'), restCtrl.remove);
+
+router.patch('/:id', authMiddleware, permit('restaurant', 'admin'), restCtrl.update);
+
+router.delete('/:id', authMiddleware, permit('restaurant', 'admin'), restCtrl.remove);
 
 module.exports = router;

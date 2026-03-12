@@ -20,14 +20,9 @@ const cartRoutes = require("./routes/cartRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 
-
-
 const app = express();
 
-
-// MIDDLEWARES
-app.use(express.json());
-app.use(cookieParser());
+// CORS CONFIGURATION (Must be first!)
 
 app.use(
   cors({
@@ -38,6 +33,9 @@ app.use(
   })
 );
 
+
+// RAW ROUTES (Must be BEFORE express.json)
+// Webhooks need the raw unparsed stream to verify signatures
 app.post(
   "/api/payments/webhook",
   express.raw({ type: "application/json" }),
@@ -48,10 +46,12 @@ app.post(
   require("./controllers/paymentController").handleWebhook  
 );
 
+// GLOBAL PARSERS
+ 
+app.use(express.json());
+app.use(cookieParser());
 
-
-
-// ROUTES
+// STANDARD ROUTES
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/restaurants", restaurantRoutes);
@@ -71,16 +71,16 @@ app.get("/api/health", (req, res) =>
 app.get("/api/test", (req, res) => {
   res.json({ message: "Test route works!" });
 });
+ 
+// ERROR HANDLER
+ app.use(errorHandler);
 
-//ERROR HANDLER
-app.use(errorHandler);
-
-
-// SERVER + SOCKET.IO
+// SERVER + SOCKET.IO UPLINK
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
+    // Make sure Socket.io matches the main CORS rules
     origin: process.env.CLIENT_URL || "http://localhost:5173",
     credentials: true,
   },
@@ -94,7 +94,7 @@ const PORT = process.env.PORT || 5000;
 connectDB()
   .then(() => {
     server.listen(PORT, () =>
-      console.log(`✅ Backend running on port ${PORT}`)
+      console.log(`✅ Mainframe uplink established on port ${PORT}`)
     );
   })
   .catch((err) => {

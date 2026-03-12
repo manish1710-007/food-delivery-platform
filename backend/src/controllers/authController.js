@@ -9,7 +9,20 @@ const {
   verifyRefresh
 } = require('../utils/jwt');
 
+// UNIVERSAL COOKIE CONFIGURATION
+// Localhost needs 'lax'. Render + Vercel needs 'none' + secure.
+const getCookieOptions = () => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  return {
+    httpOnly: true,
+    sameSite: isProduction ? 'none' : 'lax', 
+    secure: isProduction,
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  };
+};
 
+
+// CONTROLLERS
 const register = async (req, res) => {
   console.log('REGISTER BODY:', req.body);
   
@@ -49,7 +62,6 @@ const register = async (req, res) => {
   }
 };
 
-
 const loginBasic = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -79,7 +91,6 @@ const loginBasic = async (req, res) => {
   }
 };
 
-
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -103,12 +114,8 @@ const login = async (req, res, next) => {
     user.refreshToken = refreshToken;
     await user.save();
 
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
+    // Attach the secure cookie configuration here
+    res.cookie('refreshToken', refreshToken, getCookieOptions());
 
     return res.status(200).json({
       user: {
@@ -124,7 +131,6 @@ const login = async (req, res, next) => {
     next(err);
   }
 };
-
 
 const refresh = async (req, res) => {
   try {
@@ -145,19 +151,14 @@ const refresh = async (req, res) => {
     user.refreshToken = newRefreshToken;
     await user.save();
 
-    res.cookie('refreshToken', newRefreshToken, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
+    // Attach the secure cookie configuration here
+    res.cookie('refreshToken', newRefreshToken, getCookieOptions());
 
     res.json({ accessToken: newAccessToken });
   } catch (err) {
     res.status(401).json({ message: 'Invalid or expired refresh token' });
   }
 };
-
 
 const logout = async (req, res) => {
   try {
@@ -172,15 +173,15 @@ const logout = async (req, res) => {
       }
     }
 
-    res.clearCookie('refreshToken');
+    // pass the exact same options to successfully destroy a strict/secure cookie
+    res.clearCookie('refreshToken', getCookieOptions());
     return res.json({ message: 'Logged out successfully' });
 
   } catch (err) {
-    res.clearCookie('refreshToken');
+    res.clearCookie('refreshToken', getCookieOptions());
     res.json({ message: 'Logged out' });
   }
 };
-
 
 const getMe = async (req, res) => {
   try {
@@ -190,7 +191,6 @@ const getMe = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
 
 module.exports = {
   register,

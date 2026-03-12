@@ -2,107 +2,41 @@ const router = require('express').Router();
 const { authMiddleware, permit } = require("../middlewares/authMiddleware");
 const adminCtrl = require("../controllers/adminController");
 const upload = require("../middlewares/upload");
+
+// GLOBAL ADMIN LOCK
+
 router.use(authMiddleware, permit("admin"));
 
-const Restaurant = require("../models/Restaurant");
 
-
-// GET all restaurants
-router.get(
-  "/restaurants",
-  authMiddleware,
-  permit("admin"),
-  adminCtrl.listRestaurants,
-  async (req, res) => {
-    const restaurants = await Restaurant.find();
-    res.json(restaurants);
-  }
-);
-
-
-// CREATE restaurant
-router.post(
-  "/restaurants",
-  authMiddleware,
-  permit("admin"),
-  adminCtrl.createRestaurant,
-  async (req, res) => {
-
-    const restaurant = await Restaurant.create(req.body);
-
-    res.json(restaurant);
-  }
-);
-
-
-// UPDATE restaurant
-router.put(
-  "/restaurants/:id",
-  authMiddleware,
-  permit("admin"),
-  async (req, res) => {
-
-    const restaurant = await Restaurant.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-
-    res.json(restaurant);
-  }
-);
-
-
-// DELETE restaurant
-router.delete(
-  "/restaurants/:id",
-  authMiddleware,
-  permit("admin"),
-  async (req, res) => {
-
-    await Restaurant.findByIdAndDelete(req.params.id);
-
-    res.json({ message: "Deleted" });
-  }
-);
-
-router.patch(
-  "/restaurants/:id/toggle",
-  authMiddleware,
-  permit("admin"),
-  adminCtrl.toggleRestaurantActive,
-);
-
-// Restaurants
+// RESTAURANT MANAGEMENT
+router.get("/restaurants", adminCtrl.listRestaurants);
 router.post("/restaurants", adminCtrl.createRestaurant);
-router.get("/restaurants", adminCtrl.getAllRestaurants);
-router.patch("/restaurants/:id/approve", adminCtrl.approveRestaurant);
+router.get("/restaurants/pending", adminCtrl.getPendingRestaurants);
+router.get("/restaurants/:id", adminCtrl.getRestaurantById);
+router.put("/restaurants/:id", adminCtrl.updateRestaurant);
+router.delete("/restaurants/:id", adminCtrl.deleteRestaurant);
 
-// Products
-router.post("/products", adminCtrl.createProduct);
+// Status & Approval Toggles
+router.patch("/restaurants/:id/status", adminCtrl.updateRestaurantStatus);
+router.patch("/restaurants/:id/toggle-active", adminCtrl.toggleRestaurantActive);
+router.patch("/restaurants/:id/approve", adminCtrl.approveRestaurant); // Legacy support
+
+// PRODUCT MANAGEMENT
 router.get("/products", adminCtrl.getAllProducts);
 
-//Admin Analytics
-router.get(
-    "/analytics",
-    authMiddleware,
-    permit("admin"),
-    adminCtrl.getAnalytics
-);
-//Manage Users
+router.post("/products", upload.single("image"), adminCtrl.createProductWithImage)
+router.post("/products/basic", adminCtrl.createProduct);
 
-router.get("/stats", authMiddleware, permit("admin"), adminCtrl.stats);
-router.get("/users", authMiddleware, permit("admin"), adminCtrl.listUsers);
-router.get("/restaurants", authMiddleware, permit("admin"), adminCtrl.listRestaurants);
-router.get("/orders", authMiddleware, permit("admin"), adminCtrl.listOrders);
-router.get("/analytics/export", authMiddleware, permit("admin"), adminCtrl.exportAnalyticsToCSV);
-router.patch("/users/:id/role", authMiddleware, permit("admin"), adminCtrl.updateUserRole);
-router.get("/restaurants/pending", authMiddleware, permit("admin"), adminCtrl.getPendingRestaurants);
-router.patch("/restaurants/:id/status", authMiddleware, permit("admin"), adminCtrl.updateRestaurantStatus);
-router.post("/products", upload.single("image"), adminCtrl.createProductWithImage);
-router.get("/payment-analytics", authMiddleware, permit("admin"), adminCtrl.getPaymentAnalytics);
-router.get("/restaurants/:id", authMiddleware, permit("admin"), adminCtrl.getRestaurantById);
-router.put("/restaurants/:id", authMiddleware, permit("admin"), adminCtrl.updateRestaurant);
-router.delete("/restaurants/:id", authMiddleware, permit("admin"), adminCtrl.deleteRestaurant);
-router.patch("/restaurants/:id/toggle-active", authMiddleware, permit("admin"), adminCtrl.toggleRestaurantActive);
+
+// USER & ORDER MANAGEMENT
+router.get("/users", adminCtrl.listUsers);
+router.patch("/users/:id/role", adminCtrl.updateUserRole);
+router.get("/orders", adminCtrl.listOrders);
+
+// ANALYTICS & STATS
+router.get("/stats", adminCtrl.stats);
+router.get("/analytics", adminCtrl.getAnalytics);
+router.get("/payment-analytics", adminCtrl.getPaymentAnalytics);
+router.get("/analytics/export", adminCtrl.exportAnalyticsToCSV);
+
 module.exports = router;
