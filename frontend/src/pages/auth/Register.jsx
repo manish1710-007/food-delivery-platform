@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../../auth/useAuth";
 import { Link, useNavigate } from "react-router-dom";
+import api from "../../api/axios";
 
 export default function Register() {
   const { register } = useAuth();
@@ -36,8 +37,14 @@ export default function Register() {
     addLog("> GENERATING_NEW_IDENTITY...");
 
     try {
-      await register(form);
-      addLog("> IDENTITY_CREATED [OK]");
+
+      // send the form payload to live backend 
+      const res = await api.post("/auth/register", form);
+
+      // pass the resulting token and user object to auth context
+      register(res.data.accessToken, res.data.user);
+
+      addLog("> INDENTITY_CREATED [OK]");
       
       // Artificial delay for aesthetic log reading
       setTimeout(() => {
