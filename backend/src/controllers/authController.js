@@ -43,22 +43,40 @@ const register = async (req, res) => {
       name,
       email,
       password,
-      role: role || 'Restaurant'
+      role: role || 'customer'
     });
 
-    const token = generateToken(user._id);
+    const payload = { id: user._id, role: user.role, email: user.email };
 
-    res.status(201).json({
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      token
+    const accessToken = signAccessToken(payload);
+    const refreshToken = signRefreshToken(payload);
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.cookie('refreshToken', refreshToken, getCookieOptions());
+
+    return res.status(201).json({
+      message: 'Node established successfully',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      },
+      accessToken
     });
-
-  } catch (err) {
+    
+  } catch (err){
     console.error('Register Error ->', err);
-    res.status(500).json({ message: 'Server error during registration' });
+
+    if (err.name == 'ValidationError'){
+      //Extracts the specific Mongoose schema validation failure
+      const messages = Object.values(err.erros).map(val => val.message);
+      return res.status(400).json({ message: messages.join(',') });
+    }
+
+    res.status(500).json({ message: err.message || 'Server error during registration' });
   }
 };
 
