@@ -1,10 +1,8 @@
 import React, { useState } from "react";
-import { useAuth } from "../../auth/useAuth";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 
 export default function Register() {
-  const { register } = useAuth();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
@@ -38,18 +36,16 @@ export default function Register() {
 
     try {
 
-      // send the form payload to live backend 
-      const res = await api.post("/auth/register", form);
+      await api.post("/auth/register",form);
 
-      // pass the resulting token and user object to auth context
-      register(res.data.accessToken, res.data.user);
 
-      addLog("> INDENTITY_CREATED [OK]");
+      addLog("> IDENTITY_CREATED [OK]");
+      addLog("> ROUTING_TO_AUTH_GATEWAY...")
       
       // Artificial delay for aesthetic log reading
       setTimeout(() => {
-        navigate("/");
-      }, 800);
+        navigate("/login");
+      }, 1500);
       
     } catch (err) {
       setError(err.response?.data?.message || "NODE_CREATION_FAILED");
