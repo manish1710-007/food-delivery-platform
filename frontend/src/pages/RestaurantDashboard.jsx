@@ -24,7 +24,10 @@ export default function RestaurantDashboard() {
 
       const res = await api.get(`/orders?${params}`);
 
-      setOrders(res.data.orders || res.data || []);
+      //Extract the payload
+      const payload = res.data.orders || res.data;
+
+      setOrders(Array.isArray(payload) ? payload : []);
       setTotalPages(res.data.totalPages || 1);
 
     } catch (err) {
@@ -136,7 +139,7 @@ export default function RestaurantDashboard() {
       )}
 
       {/* ORDERS LIST */}
-      {orders.map(order => (
+      {Array.isArray(orders) && orders.map(order => (
         <div key={order._id} className="card mb-3 shadow-sm">
           <div className="card-body">
 
