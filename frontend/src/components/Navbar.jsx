@@ -47,7 +47,7 @@ export default function Navbar() {
       <nav className="y2k-navbar sticky-top">
         <div className="container-fluid px-3 px-xl-4 h-100 d-flex align-items-center justify-content-between">
 
-          {/* ── Brand ── */}
+          {/*  Brand  */}
           <Link to="/" className="y2k-brand d-flex align-items-center gap-2 text-decoration-none">
             <span className="y2k-brand-icon blink text-cyan">_</span>
             <span className="y2k-brand-name">
@@ -55,7 +55,7 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* ── Right side ── */}
+          {/*  Right side  */}
           <div className="d-flex align-items-center gap-2 gap-md-3">
 
             <ThemeToggle />
@@ -188,7 +188,7 @@ const navStyles = `
     --wire-border: 1px solid rgba(0, 229, 255, 0.4);
   }
 
-  /* ── Shell ── */
+  /*  Shell  */
   .y2k-navbar {
     background: var(--nav-bg);
     border-bottom: var(--wire-border);
@@ -208,7 +208,7 @@ const navStyles = `
     z-index: 0;
   }
 
-  /* ── Brand ── */
+  /*  Brand  */
   .y2k-brand { position: relative; z-index: 1; }
   .y2k-brand-icon { font-weight: bold; font-size: 1.2rem; }
   .y2k-brand-name {
@@ -219,7 +219,7 @@ const navStyles = `
     text-shadow: 2px 2px 0px rgba(0, 229, 255, 0.2);
   }
 
-  /* ── Utilities ── */
+  /*  Utilities  */
   .text-cyan { color: var(--cyan) !important; }
   .text-magenta { color: var(--magenta) !important; }
   .text-amber { color: var(--amber) !important; }
@@ -229,7 +229,7 @@ const navStyles = `
   .blink { animation: blinker 1s steps(2, start) infinite; }
   @keyframes blinker { to { visibility: hidden; } }
 
-  /* ── Nav Buttons ── */
+  /*  Nav Buttons  */
   .y2k-nav-btn {
     position: relative;
     z-index: 1;
@@ -261,7 +261,7 @@ const navStyles = `
     box-shadow: 2px 2px 0px rgba(0,0,0,0.8);
   }
 
-  /* ── Dropdown Panel ── */
+  /*  Dropdown Panel  */
   .y2k-dropdown {
     width: 240px;
     background: var(--nav-bg);
