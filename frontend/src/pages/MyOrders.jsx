@@ -11,7 +11,7 @@ export default function MyOrders() {
     const fetchOrders = async () => {
       try {
         const res = await api.get("/orders/my");
-        setOrders(res.data);
+        setOrders(res.data.orders);
       } catch (error) {
         console.error(error);
         alert("SYS_ERR: FAILED_TO_QUERY_ARCHIVES");

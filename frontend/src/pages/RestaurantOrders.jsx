@@ -11,7 +11,7 @@ export default function RestaurantOrders() {
   const fetchOrders = async () => {
     try {
       const res = await api.get(`/orders?restaurant=${RESTAURANT_ID}`);
-      setOrders(res.data);
+      setOrders(res.data.orders);
     } catch (error) {
       console.error(error);
       alert("Failed to load orders");
