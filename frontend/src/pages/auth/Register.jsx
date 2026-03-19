@@ -158,7 +158,7 @@ export default function Register() {
                     >
                       <option value="customer">ROOT_USER (Customer)</option>
                       <option value="restaurant">HOST_NODE (Restaurant)</option>
-                      <option value="driver">PACKET_ROUTER (Driver)</option>
+                      <option value="admin">SYS_ADMIN (Admin)</option>
                     </select>
                   </div>
                 </div>
