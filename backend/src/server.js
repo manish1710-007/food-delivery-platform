@@ -22,21 +22,29 @@ const categoryRoutes = require("./routes/categoryRoutes");
 
 const app = express();
 
-// CORS CONFIGURATION (Must be first!)
+//  CORS CONFIG (FIXED)
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.CLIENT_URL
+];
 
 app.use(
-  //update here
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log("❌ CORS Blocked:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-
-// RAW ROUTES (Must be BEFORE express.json)
-// Webhooks need the raw unparsed stream to verify signatures
+// WEBHOOK 
 app.post(
   "/api/payments/webhook",
   express.raw({ type: "application/json" }),
@@ -44,15 +52,14 @@ app.post(
     req.rawBody = req.body;
     next();
   },
-  require("./controllers/paymentController").handleWebhook  
+  require("./controllers/paymentController").handleWebhook
 );
 
-// GLOBAL PARSERS
- 
+//  GLOBAL MIDDLEWARES
 app.use(express.json());
 app.use(cookieParser());
 
-// STANDARD ROUTES
+// ROUTES
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/restaurants", restaurantRoutes);
@@ -62,9 +69,9 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/restaurant-owner", require("./routes/restaurantOwnerRoutes"));
 app.use("/api/payment", paymentRoutes);
 app.use("/api/categories", categoryRoutes);
-
 app.use("/api/upload", uploadRoutes);
 
+// TEST ROUTES
 app.get("/api/health", (req, res) =>
   res.json({ ok: true, ts: Date.now() })
 );
@@ -72,17 +79,20 @@ app.get("/api/health", (req, res) =>
 app.get("/api/test", (req, res) => {
   res.json({ message: "Test route works!" });
 });
- 
-// ERROR HANDLER
- app.use(errorHandler);
 
-// SERVER + SOCKET.IO UPLINK
+//  ERROR HANDLER
+app.use(errorHandler);
+
+//  SERVER + SOCKET.IO
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    // Make sure Socket.io matches the main CORS rules
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      process.env.CLIENT_URL
+    ],
+    methods: ["GET", "POST"],
     credentials: true,
   },
 });
@@ -90,15 +100,18 @@ const io = new Server(server, {
 orderSocket(io);
 app.set("io", io);
 
+// START SERVER
 const PORT = process.env.PORT || 5000;
 
 connectDB()
   .then(() => {
+    console.log("🌐 CLIENT_URL:", process.env.CLIENT_URL);
+
     server.listen(PORT, () =>
-      console.log(`✅ Mainframe uplink established on port ${PORT}`)
+      console.log(`✅ Server running on port ${PORT}`)
     );
   })
   .catch((err) => {
-    console.error("❌ DB connect failed", err);
+    console.error("❌ DB connection failed", err);
     process.exit(1);
   });
