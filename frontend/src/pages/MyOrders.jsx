@@ -10,8 +10,9 @@ export default function MyOrders() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await api.get("/orders/my");
-        setOrders(res.data.orders);
+        const res = await api.get("/api/orders/my");
+        const payload = res.data?.orders || res.data;
+        setOrders(Array.isArray(payload) ? payload : [])
       } catch (error) {
         console.error(error);
         alert("SYS_ERR: FAILED_TO_QUERY_ARCHIVES");
@@ -105,7 +106,7 @@ export default function MyOrders() {
                         {/* ID & Date */}
                         <div className="d-flex flex-column gap-1">
                           <div className="text-muted small font-monospace">
-                            &gt; TS: {new Date(order.createdAt).toISOString().replace('T', ' ').substring(0, 19)}
+                            &gt; TS: {new Date(order.createdAt).toLocaleString().replace('T', ' ').substring(0, 19)}
                           </div>
                           <div className="text-main fw-bold fs-5 font-monospace">
                             PKT_ID: {order._id.slice(-6).toUpperCase()}
@@ -115,7 +116,7 @@ export default function MyOrders() {
                         {/* Status Badge */}
                         <div className="d-flex align-items-center justify-content-md-center">
                           <span className={`y2k-status-badge font-monospace small px-2 py-1 ${statusStyles}`} style={{ border: "1px solid" }}>
-                            [ {order.status.toUpperCase()} ]
+                            [ {(order.status || "unknown").toUpperCase()} ]
                           </span>
                         </div>
 

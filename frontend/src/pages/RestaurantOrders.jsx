@@ -80,7 +80,7 @@ export default function RestaurantOrders() {
                       ID: <span className="text-cyan">#{order._id.slice(-6)}</span>
                     </h5>
                     <span className="font-monospace small fw-bold px-2 py-1 bg-magenta-dim border-magenta text-magenta" style={{ border: "1px solid" }}>
-                      [ {order.status.toUpperCase()} ]
+                      [ {(order.status || "unknown").toUpperCase()} ]
                     </span>
                   </div>
 
