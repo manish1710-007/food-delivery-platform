@@ -25,7 +25,7 @@ export default function RestaurantDashboard() {
         limit: 5,
       });
 
-      const res = await api.get(`/api/orders?${params}`);
+      const res = await api.get(`/orders?${params}`);
 
       const payload = res.data.orders || res.data;
       setOrders(Array.isArray(payload) ? payload : []);
