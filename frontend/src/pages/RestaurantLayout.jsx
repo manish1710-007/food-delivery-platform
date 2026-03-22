@@ -4,11 +4,11 @@ export default function RestaurantLayout() {
   const location = useLocation();
 
   const navLinks = [
-    { path: "dashboard", label: "SYS_CTRL (Dashboard)" },
-    { path: "orders", label: "ACTIVE_PAYLOADS (Orders)" },
-    { path: "menu", label: "ASSET_REGISTRY (Menu)" },
-    { path: "profile", label: "NODE_CONFIG (Profile)" },
-    { path: "analytics", label: "TELEMETRY (Analytics)" },
+    { path: "dashboard", label: "Dashboard" },
+    { path: "orders", label: "Orders" },
+    { path: "menu", label: "Menu" },
+    { path: "profile", label: "Profile" },
+    { path: "analytics", label: "Analytics" },
   ];
 
   const isActive = (path) => location.pathname.includes(path);
@@ -16,63 +16,51 @@ export default function RestaurantLayout() {
   return (
     <>
       <style>{styles}</style>
-      <div className="y2k-layout-wrapper">
-        
-        {/* Global Background Elements */}
-        <div className="scanlines"></div>
-        <div className="y2k-grid-bg"></div>
 
-        <div className="container-fluid px-3 px-xl-4 py-4 position-relative z-1">
-          
-          {/* THE COMMAND RIBBON */}
-          <div className="y2k-wire-box border-cyan mb-4 p-0 overflow-hidden d-flex flex-column flex-lg-row shadow-lg" style={{ background: "rgba(2, 6, 13, 0.95)" }}>
-            
-            {/* Identification Block */}
-            <div className="bg-cyan-dim border-end border-cyan px-4 py-3 d-flex flex-column justify-content-center" style={{ minWidth: "250px" }}>
-              <h2 className="m-0 font-monospace fw-bold fs-5 text-cyan d-flex align-items-center gap-2">
-                <span className="blink text-main">_</span> HOST_NODE
-              </h2>
-              <div className="small font-monospace mt-1 text-muted" style={{ fontSize: "0.75rem" }}>
-                LOCAL_SYS_CONTROL // LVL_2
-              </div>
-            </div>
+      <div className="layout-root">
 
-            {/* Navigation Tabs */}
-            <div className="d-flex flex-grow-1 overflow-auto y2k-nav-scroll">
-              {navLinks.map((link) => {
-                const active = isActive(link.path);
-                return (
-                  <Link 
-                    key={link.path}
-                    to={`/restaurant/${link.path}`} 
-                    className={`y2k-nav-tab px-3 py-3 d-flex align-items-center font-monospace text-decoration-none transition-all ${active ? 'active text-cyan' : 'text-muted'}`}
-                    style={{ fontSize: "0.85rem" }}
-                  >
-                    <span className={`me-2 ${active ? 'text-magenta fw-bold' : 'opacity-50'}`}>
-                      {active ? ">>" : ">"}
-                    </span>
-                    [ {link.label} ]
-                  </Link>
-                );
-              })}
-            </div>
-            
-            {/* System Status Indicator */}
-            <div className="d-none d-xl-flex align-items-center px-4 font-monospace small text-cyan border-start border-cyan bg-cyan-dim">
-               <div className="d-flex flex-column text-end">
-                 <span>UPLINK: SECURE</span>
-                 <span className="text-muted" style={{ fontSize: "0.65rem" }}>RSA-2048</span>
-               </div>
-            </div>
-
+        {/* Sidebar */}
+        <aside className="sidebar">
+          <div className="logo">
+            <span className="blink">_</span> HOST_NODE
           </div>
 
-          
-          <div className="y2k-content-area position-relative z-1">
+          <div className="nav">
+            {navLinks.map((link) => {
+              const active = isActive(link.path);
+              return (
+                <Link
+                  key={link.path}
+                  to={`/restaurant/${link.path}`}
+                  className={`nav-item ${active ? "active" : ""}`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </div>
+        </aside>
+
+        {/* Main Area */}
+        <div className="main">
+
+          {/* Top Bar */}
+          <div className="topbar">
+            <div className="status">
+              ● SYSTEM ACTIVE
+            </div>
+
+            <div className="user">
+              ROOT_USER
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="content">
             <Outlet />
           </div>
-
         </div>
+
       </div>
     </>
   );
@@ -82,70 +70,105 @@ const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
   :root {
-    --bg-color: #010308; 
+    --bg: #010308;
+    --panel: #02060d;
     --cyan: #00e5ff;
-    --cyan-dim: rgba(0, 229, 255, 0.1);
-    --cyan-glow: rgba(0, 229, 255, 0.5);
-    --magenta: #ff0055;
-    --magenta-dim: rgba(255, 0, 85, 0.15);
-    --text-main: #e0e6ed;
-    --text-muted: #5e7993;
-    --wire-border: 1px solid var(--cyan-glow);
+    --cyan-dim: rgba(0,229,255,0.1);
+    --text: #e0e6ed;
+    --muted: #5e7993;
   }
 
-  .y2k-layout-wrapper {
+  body {
+    margin: 0;
+  }
+
+  .layout-root {
+    display: flex;
     min-height: 100vh;
-    background-color: var(--bg-color);
+    background: var(--bg);
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--text);
   }
 
-  .y2k-grid-bg {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background-image: linear-gradient(var(--cyan-dim) 1px, transparent 1px), linear-gradient(90deg, var(--cyan-dim) 1px, transparent 1px);
-    background-size: 30px 30px;
-    z-index: 0; pointer-events: none; opacity: 0.3;
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px;
+    background: var(--panel);
+    border-right: 1px solid rgba(0,229,255,0.2);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
   }
 
-  .scanlines {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
-    background-size: 100% 4px; z-index: 9999; pointer-events: none; opacity: 0.6;
+  .logo {
+    font-size: 18px;
+    color: var(--cyan);
+    margin-bottom: 30px;
   }
 
-  .y2k-wire-box {
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
+  .nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .nav-item {
+    padding: 10px;
+    text-decoration: none;
+    color: var(--muted);
+    border: 1px solid transparent;
+    transition: 0.2s;
+  }
+
+  .nav-item:hover {
+    background: var(--cyan-dim);
+    color: var(--text);
+  }
+
+  .nav-item.active {
     border: 1px solid var(--cyan);
-    position: relative;
+    color: var(--cyan);
+    background: var(--cyan-dim);
   }
 
-  /* ── COMMAND RIBBON STYLES ── */
-  .y2k-nav-scroll {
-    scrollbar-width: none; 
-    -ms-overflow-style: none;
-  }
-  .y2k-nav-scroll::-webkit-scrollbar {
-    display: none; 
+  /* MAIN */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
   }
 
-  .y2k-nav-tab {
-    border-right: 1px dashed var(--cyan-glow);
-    white-space: nowrap;
-    border-bottom: 2px solid transparent;
-  }
-  
-  .y2k-nav-tab:hover:not(.active) {
-    background-color: rgba(0, 229, 255, 0.05);
-    color: var(--text-main) !important;
-    text-shadow: 0 0 5px var(--cyan-dim);
-  }
-
-  .y2k-nav-tab.active {
-    background-color: rgba(0, 229, 255, 0.1);
-    border-bottom: 2px solid var(--cyan);
-    box-shadow: inset 0 -10px 15px -10px var(--cyan-glow);
-    text-shadow: 0 0 5px rgba(0, 229, 255, 0.4);
+  /* TOPBAR */
+  .topbar {
+    height: 60px;
+    border-bottom: 1px solid rgba(0,229,255,0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    background: var(--panel);
   }
 
-  .transition-all { transition: all 0.2s ease-in-out; }
-  .bg-cyan-dim { background-color: var(--cyan-dim) !important; }
+  .status {
+    color: var(--cyan);
+    font-size: 14px;
+  }
+
+  .user {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* CONTENT */
+  .content {
+    padding: 20px;
+  }
+
+  .blink {
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
 `;

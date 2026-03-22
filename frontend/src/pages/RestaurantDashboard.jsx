@@ -11,9 +11,7 @@ export default function RestaurantDashboard() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-
   const user = JSON.parse(localStorage.getItem("user"));
-
 
   const fetchOrders = useCallback(async (customFilters = filters, currentPage = page) => {
     try {
@@ -25,7 +23,7 @@ export default function RestaurantDashboard() {
         limit: 5,
       });
 
-      const res = await api.get(`/orders?${params}`);
+      const res = await api.get(`/restaurant-owner/orders?${params}`);
 
       const payload = res.data.orders || res.data;
       setOrders(Array.isArray(payload) ? payload : []);
@@ -46,8 +44,9 @@ export default function RestaurantDashboard() {
   useEffect(() => {
     socket.connect();
 
-    
-    socket.emit("JoinRestaurant", user._id);
+    if (user && user._id) {
+      socket.emit("JoinRestaurant", user._id);
+    }
 
     socket.on("newOrder", (order) => {
       setOrders(prev => [order, ...prev]);
@@ -76,7 +75,7 @@ export default function RestaurantDashboard() {
 
   const updateStatus = async (orderId, status) => {
     try {
-      await api.patch(`/orders/${orderId}/status`, { status });
+      await api.patch(`/restaurant-owner/orders/${orderId}/status`, { status });
 
       setOrders(prev =>
         prev.map(order =>
@@ -92,6 +91,7 @@ export default function RestaurantDashboard() {
     if (page < totalPages) {
       const newPage = page + 1;
       setPage(newPage);
+      fetchOrders(filters, newPage);
     }
   };
 
@@ -99,6 +99,7 @@ export default function RestaurantDashboard() {
     if (page > 1) {
       const newPage = page - 1;
       setPage(newPage);
+      fetchOrders(filters, newPage);
     }
   };
 
@@ -118,8 +119,6 @@ export default function RestaurantDashboard() {
     <div className="y2k-page min-vh-100 position-relative pb-5">
       <style>{styles}</style>
       
-      
-
       <div className="container position-relative z-1 pt-5">
         
         {/* HEADER */}
@@ -130,7 +129,7 @@ export default function RestaurantDashboard() {
           </h2>
         </div>
 
-        {/* FILTERS (Wrapped in a wire box to contain any non-Y2K bootstrap inputs) */}
+        {/* FILTERS */}
         <div className="y2k-wire-box p-3 mb-4">
           <div className="text-muted small font-monospace mb-2">&gt; APPLY_DATA_FILTERS:</div>
           <OrderFilters onFilter={handleFilter} />
@@ -175,7 +174,6 @@ export default function RestaurantDashboard() {
                   ))}
                 </div>
 
-                {/* Summary Info */}
                 <div className="d-flex justify-content-between text-main font-monospace mb-4 pb-2 border-bottom-wire border-cyan">
                   <span>USR: {order.user?.name || "UNKNOWN_NODE"}</span>
                   <span className="text-cyan fw-bold">₹{order.totalPrice}</span>
@@ -183,8 +181,9 @@ export default function RestaurantDashboard() {
 
                 {/* ACTION BUTTONS */}
                 <div className="d-flex flex-wrap gap-2 mt-auto">
+                  
                   <button
-                    className="y2k-btn-action flex-grow-1"
+                    className={`y2k-btn-action flex-grow-1 ${order.status === "pending" ? "glowing-btn" : ""}`}
                     onClick={() => updateStatus(order._id, "accepted")}
                     disabled={order.status !== "pending"}
                   >
@@ -192,24 +191,25 @@ export default function RestaurantDashboard() {
                   </button>
 
                   <button
-                    className="y2k-btn-action flex-grow-1"
+                    className={`y2k-btn-action flex-grow-1 ${order.status === "accepted" ? "glowing-btn" : ""}`}
                     onClick={() => updateStatus(order._id, "preparing")}
-                    disabled={order.status !== "preparing"}
+                    disabled={order.status !== "accepted"}
                   >
                     [ PREPARE ]
                   </button>
 
                   <button
-                    className="y2k-btn-action flex-grow-1"
+                    className={`y2k-btn-action flex-grow-1 ${order.status === "preparing" ? "glowing-btn" : ""}`}
                     onClick={() => updateStatus(order._id, "on_the_way")}
-                    disabled={order.status !== "on_the_way"}
+                    disabled={order.status !== "preparing"}
                   >
                     [ DISPATCH ]
                   </button>
 
                   <button
-                    className="y2k-btn-action flex-grow-1"
+                    className={`y2k-btn-action flex-grow-1 ${order.status === "on_the_way" ? "glowing-btn" : ""}`}
                     onClick={() => updateStatus(order._id, "delivered")}
+                    disabled={order.status !== "on_the_way"}
                   >
                     [ DELIVER ]
                   </button>
@@ -217,6 +217,7 @@ export default function RestaurantDashboard() {
                   <button
                     className="y2k-btn-danger flex-grow-1"
                     onClick={() => updateStatus(order._id, "cancelled")}
+                    disabled={order.status === "delivered" || order.status === "cancelled"}
                   >
                     [ ABORT ]
                   </button>
@@ -274,21 +275,7 @@ const styles = `
 
   .y2k-page {
     font-family: 'Share Tech Mono', monospace;
-    background-color: var(--bg-color);
-  }
-
-  /* GRID & OVERLAYS */
-  .y2k-grid-bg {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background-image: linear-gradient(var(--cyan-dim) 1px, transparent 1px), linear-gradient(90deg, var(--cyan-dim) 1px, transparent 1px);
-    background-size: 30px 30px;
-    z-index: 0; pointer-events: none; opacity: 0.3;
-  }
-
-  .scanlines {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
-    background-size: 100% 4px; z-index: 9999; pointer-events: none; opacity: 0.6;
+    background-color: transparent; /* Changed to transparent so layout background shows through */
   }
 
   /* UTILS */
@@ -358,5 +345,14 @@ const styles = `
   .y2k-btn-danger:hover:not(:disabled) {
     background: var(--magenta-dim);
     box-shadow: 0 0 10px var(--magenta-dim);
+  }
+
+  /* The intuitive Next-Step Glow */
+  .glowing-btn {
+    border-color: var(--cyan) !important;
+    background-color: var(--cyan-dim) !important;
+    box-shadow: 0 0 10px var(--cyan-dim), inset 0 0 5px var(--cyan-dim);
+    color: var(--text-main) !important;
+    font-weight: bold;
   }
 `;
