@@ -11,6 +11,10 @@ export default function RestaurantDashboard() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+
   const fetchOrders = useCallback(async (customFilters = filters, currentPage = page) => {
     try {
       setLoading(true);
@@ -21,7 +25,7 @@ export default function RestaurantDashboard() {
         limit: 5,
       });
 
-      const res = await api.get(`/orders?${params}`);
+      const res = await api.get(`/api/orders?${params}`);
 
       const payload = res.data.orders || res.data;
       setOrders(Array.isArray(payload) ? payload : []);
@@ -43,7 +47,7 @@ export default function RestaurantDashboard() {
     socket.connect();
 
     
-    socket.emit("JoinRestaurant");
+    socket.emit("JoinRestaurant", user._id);
 
     socket.on("newOrder", (order) => {
       setOrders(prev => [order, ...prev]);
@@ -62,7 +66,7 @@ export default function RestaurantDashboard() {
       socket.off("orderUpdated");
       socket.disconnect();
     };
-  }, []);
+  }, [user]);
 
   const handleFilter = (newFilters) => {
     setFilters(newFilters);
@@ -88,7 +92,6 @@ export default function RestaurantDashboard() {
     if (page < totalPages) {
       const newPage = page + 1;
       setPage(newPage);
-      fetchOrders(filters, newPage);
     }
   };
 
@@ -96,7 +99,6 @@ export default function RestaurantDashboard() {
     if (page > 1) {
       const newPage = page - 1;
       setPage(newPage);
-      fetchOrders(filters, newPage);
     }
   };
 
@@ -165,7 +167,7 @@ export default function RestaurantDashboard() {
 
                 {/* Items List */}
                 <div className="text-muted font-monospace small mb-3 flex-grow-1">
-                  {order.items.map(item => (
+                  {order.items?.map(item => (
                     <div key={item.product} className="d-flex justify-content-between">
                       <span>&gt; {item.name}</span>
                       <span className="text-main">x{item.quantity}</span>
@@ -192,6 +194,7 @@ export default function RestaurantDashboard() {
                   <button
                     className="y2k-btn-action flex-grow-1"
                     onClick={() => updateStatus(order._id, "preparing")}
+                    disabled={order.status !== "preparing"}
                   >
                     [ PREPARE ]
                   </button>
@@ -199,6 +202,7 @@ export default function RestaurantDashboard() {
                   <button
                     className="y2k-btn-action flex-grow-1"
                     onClick={() => updateStatus(order._id, "on_the_way")}
+                    disabled={order.status !== "on_the_way"}
                   >
                     [ DISPATCH ]
                   </button>
