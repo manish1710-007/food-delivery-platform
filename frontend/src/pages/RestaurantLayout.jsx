@@ -44,7 +44,7 @@ export default function RestaurantLayout() {
                 return (
                   <Link 
                     key={link.path}
-                    to={`/restaurant/link.path}`} 
+                    to={`/restaurant/${link.path}`} 
                     className={`y2k-nav-tab px-3 py-3 d-flex align-items-center font-monospace text-decoration-none transition-all ${active ? 'active text-cyan' : 'text-muted'}`}
                     style={{ fontSize: "0.85rem" }}
                   >
