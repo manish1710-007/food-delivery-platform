@@ -101,7 +101,6 @@ export default function RestaurantDashboard() {
     }
   };
 
-  // UI HELPER: Status Color Mapper
   const getStatusColor = (status) => {
     switch(status) {
       case "pending": return "text-magenta border-magenta bg-magenta-dim";
@@ -214,7 +213,6 @@ export default function RestaurantDashboard() {
                       &gt; AVAILABLE_ACTIONS
                     </div>
                     
-                    {/* Responsive Grid for buttons - better on mobile */}
                     <div className="d-grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))" }}>
                       
                       <button
@@ -250,7 +248,6 @@ export default function RestaurantDashboard() {
                       </button>
                     </div>
 
-                    {/* Abort button spans full width at the bottom for safety */}
                     <button
                       className="y2k-btn-danger w-100 mt-2 py-2"
                       onClick={() => updateStatus(order._id, "cancelled")}
