@@ -14,8 +14,9 @@ export default function RestaurantMenuForm({
   });
 
   const [categories, setCategories] = useState([]);
+  const [newCategoryName, setNewCategoryName] = useState(""); // State for new tag input
 
-  // Fetch categories
+  // Fetch existing categories on mount
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -29,19 +30,20 @@ export default function RestaurantMenuForm({
     fetchCategories();
   }, []);
 
-  // When editing, pre-fill form
+  // Pre-fill form when editing
   useEffect(() => {
     if (editingItem) {
       setForm({
         name: editingItem.name || "",
         price: editingItem.price || "",
         image: editingItem.image || "",
+        // Handle both populated object and raw ID string
         category: editingItem.category?._id || editingItem.category || ""
       });
     }
   }, [editingItem]);
 
-  // Upload image to Cloudinary
+  // Upload Image Handler
   const uploadImage = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -66,19 +68,36 @@ export default function RestaurantMenuForm({
     }
   };
 
-  // Submit form
+  // Function to Create New Category (The Fix)
+  const handleAddCategory = async () => {
+    const name = newCategoryName.trim();
+    if (!name) return;
+
+    try {
+      // Create category in DB
+      const res = await api.post("/categories", { name });
+      
+      const newCat = res.data;
+      setCategories((prev) => [...prev, newCat]);
+      setForm((prev) => ({ ...prev, category: newCat._id }));
+      setNewCategoryName(""); // Clear input
+      
+    } catch (err) {
+      console.error("Failed to create category", err);
+      alert("Failed to create category (Check console for details)");
+    }
+  };
+
+  // Submit Form Handler
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
     if (!form.category) {
-      alert("Please select a category");
+      alert("Please select or create a category");
       return;
     }
 
     try {
-      console.log("Submitting form:", form); // DEBUG
-
       if (editingItem) {
         await api.put(`/restaurant/menu/${editingItem._id}`, form);
       } else {
@@ -139,7 +158,7 @@ export default function RestaurantMenuForm({
               />
             </div>
 
-            {/* CATEGORY */}
+            {/* CATEGORY SELECT */}
             <div className="col-md-3">
               <select
                 className="form-select"
@@ -175,6 +194,28 @@ export default function RestaurantMenuForm({
               </button>
             </div>
 
+          </div>
+
+          {/* CREATE NEW TAG ROW */}
+          <div className="row g-3 mt-2">
+            <div className="col-md-6">
+                <div className="input-group">
+                    <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="Or create new tag..." 
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                    />
+                    <button 
+                        type="button" 
+                        className="btn btn-outline-secondary"
+                        onClick={handleAddCategory}
+                    >
+                        Add Tag
+                    </button>
+                </div>
+            </div>
           </div>
 
           {/* IMAGE PREVIEW */}

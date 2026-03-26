@@ -11,6 +11,9 @@ export default function AdminProducts() {
   const [restaurantFilter, setRestaurantFilter] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
+  
+  // State for creating new category on the fly
+  const [newCategoryName, setNewCategoryName] = useState("");
 
   // Fake system logs for the sidebar
   const [sysLogs, setSysLogs] = useState([
@@ -34,6 +37,7 @@ export default function AdminProducts() {
   useEffect(() => {
     fetchProducts();
     fetchRestaurants();
+    fetchCategories();
   }, []);
 
   async function fetchProducts() {
@@ -65,6 +69,26 @@ export default function AdminProducts() {
       console.error(err);
     }
   }
+
+  const handleAddCategory = async () => {
+    const name = newCategoryName.trim();
+    if (!name) return;
+    
+    try {
+      const res = await api.post("/categories", { name });
+      const newCat = res.data;
+      
+      // Add to list and auto-select it
+      setCategories([...categories, newCat]);
+      setForm({ ...form, category: newCat._id });
+      setNewCategoryName("");
+      addLog(`> NEW_TAXONOMY_CREATED: [${name.toUpperCase()}]`);
+      
+    } catch (err) {
+      console.error(err);
+      alert("SYS_ERR: CATEGORY_CREATION_FAILED");
+    }
+  };
 
   const getCatId = (cat) => {
     if (!cat) return "";
@@ -159,13 +183,12 @@ export default function AdminProducts() {
     
     const data = new FormData();
     data.append("file", file);
-    data.append("upload_preset", "fooddash"); // Ensure this preset exists in Cloudinary!
+    data.append("upload_preset", "fooddash"); 
 
     try {
       const res = await fetch("https://api.cloudinary.com/v1_1/du4ly99ab/image/upload", { method: "POST", body: data });
       const json = await res.json();
       
-      // Catch Cloudinary specific errors
       if (json.error) {
         throw new Error(json.error.message);
       }
@@ -176,8 +199,6 @@ export default function AdminProducts() {
     } catch (err) {
       console.error("Cloudinary Error:", err);
       alert(`SYS_ERR: UPLOAD_REJECTED\n${err.message}`);
-      
-      // Log the exact error to the terminal sidebar
       const shortError = err.message.length > 20 ? err.message.substring(0, 20) + "..." : err.message;
       addLog(`> ERR: ${shortError.toUpperCase()}`);
     } finally {
@@ -232,7 +253,6 @@ export default function AdminProducts() {
 
           <div className="row g-4 align-items-start">
 
-            {/*  LEFT: Filters & Product List  */}
             <div className="col-12 col-xl-9">
               
               {/* Query Panel */}
@@ -303,7 +323,7 @@ export default function AdminProducts() {
                         {/* Taxonomy & Host */}
                         <div className="d-flex flex-column justify-content-center overflow-hidden" style={{ minWidth: "150px" }}>
                           <div className="text-muted small text-truncate">&gt; HOST: {getRestName(p.restaurant).toUpperCase()}</div>
-                          <div className="text-muted small text-truncate">&gt; TAG: <span className="text-main">[{p.category.toUpperCase()}]</span></div>
+                          <div className="text-muted small text-truncate">&gt; TAG: <span className="text-main">[{p.category?.name || p.category || "UNKNOWN"}]</span></div>
                         </div>
 
                         {/* Price & Status */}
@@ -418,19 +438,38 @@ export default function AdminProducts() {
                     <div className="y2k-input-group d-flex">
                       <span className="y2k-input-prefix px-2 py-2 text-cyan border-end border-cyan">TAG:</span>
                       <select 
-                      className="y2k-input flex-grow-1 p-2 y2k-select text-uppercase" 
-                      value={form.category} 
-                      onChange={e => setForm({ ...form, category: e.target.value })} 
-                      required
-                    >
-                      <option value="">SELECT_TAG...</option>
-                      {categories.map((c) => (
-                        <option key={c._id} value={c._id}>{c.name}</option>
-                      ))}
-                    </select>
-
+                        className="y2k-input flex-grow-1 p-2 y2k-select text-uppercase" 
+                        value={form.category} 
+                        onChange={e => setForm({ ...form, category: e.target.value })} 
+                        required
+                      >
+                        <option value="">SELECT_TAG...</option>
+                        {categories.map((c) => (
+                          <option key={c._id} value={c._id}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* CREATE NEW TAG UI */}
+                    <div className="y2k-input-group d-flex mt-2">
+                      <span className="y2k-input-prefix px-2 py-2 text-muted border-end border-cyan">NEW:</span>
+                      <input 
+                        className="y2k-input flex-grow-1 p-2" 
+                        placeholder="CREATE_NEW_TAG..." 
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                      />
+                      <button 
+                        type="button" 
+                        className="y2k-btn-outline text-cyan px-2" 
+                        onClick={handleAddCategory}
+                        style={{ fontSize: "0.8rem" }}
+                      >
+                        [ + ]
+                      </button>
                     </div>
                   </div>
+                  
                   <div className="col-md-6">
                     <label className="d-block text-muted small mb-1">&gt; HOST_NODE</label>
                     <div className="y2k-input-group d-flex h-100">
