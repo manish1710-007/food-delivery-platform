@@ -10,80 +10,109 @@ export default function RestaurantMenuForm({
     name: "",
     price: "",
     image: "",
-    category: "Burger"
+    category: ""
   });
 
+  const [categories, setCategories] = useState([]);
+
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await api.get("/categories");
+        setCategories(res.data);
+      } catch (err) {
+        console.error("Failed to load categories", err);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // When editing, pre-fill form
   useEffect(() => {
     if (editingItem) {
-      setForm(editingItem);
+      setForm({
+        name: editingItem.name || "",
+        price: editingItem.price || "",
+        image: editingItem.image || "",
+        category: editingItem.category?._id || editingItem.category || ""
+      });
     }
   }, [editingItem]);
 
+  // Upload image to Cloudinary
   const uploadImage = async (e) => {
     const file = e.target.files[0];
+    if (!file) return;
+
     const data = new FormData();
     data.append("file", file);
     data.append("upload_preset", "fooddash");
 
-    const res = await fetch(
-      "https://api.cloudinary.com/v1_1/du4ly99ab/image/upload",
-      {
-        method: "POST",
-        body: data
-      }
-    );
+    try {
+      const res = await fetch(
+        "https://api.cloudinary.com/v1_1/du4ly99ab/image/upload",
+        {
+          method: "POST",
+          body: data
+        }
+      );
 
-    const json = await res.json();
-    setForm({ ...form, image: json.secure_url });
+      const json = await res.json();
+      setForm((prev) => ({ ...prev, image: json.secure_url }));
+    } catch (err) {
+      console.error("Image upload failed", err);
+    }
   };
 
+  // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validation
+    if (!form.category) {
+      alert("Please select a category");
+      return;
+    }
+
     try {
+      console.log("Submitting form:", form); // DEBUG
+
       if (editingItem) {
         await api.put(`/restaurant/menu/${editingItem._id}`, form);
       } else {
         await api.post("/restaurant/menu", form);
       }
 
-      setForm({ name: "", price: "", image: "" });
+      // Reset form
+      setForm({
+        name: "",
+        price: "",
+        image: "",
+        category: ""
+      });
+
       setEditingItem(null);
       fetchMenu();
     } catch (err) {
-      console.error(err);
+      console.error("Save failed:", err);
       alert("Save failed");
     }
   };
 
-  const [categories, setCategories] = useState([]);
-
-  useEffect(() => {
-    api.get("/categories").then(res=>{setCategories(res.data)});
-  }, []); 
-
-  <select
-    value={form.category}
-    onChange={(e) => setForm({ ...form, category: e.target.value })}
-    //this is where the issue was
-  >
-
-    <option value="">Select category</option>
-    {categories.map(cat => (
-      <option key={cat._id} value={cat._id}>
-        {cat.name}
-      </option>
-    ))}
-  </select>
-
   return (
     <div className="card shadow-sm mb-4">
       <div className="card-body">
-        <h5>{editingItem ? "Edit Item" : "Add New Item"}</h5>
+        <h5 className="mb-3">
+          {editingItem ? "Edit Item" : "Add New Item"}
+        </h5>
 
         <form onSubmit={handleSubmit}>
           <div className="row g-3">
-            <div className="col-md-4">
+
+            {/* NAME */}
+            <div className="col-md-3">
               <input
                 type="text"
                 placeholder="Item name"
@@ -96,7 +125,8 @@ export default function RestaurantMenuForm({
               />
             </div>
 
-            <div className="col-md-3">
+            {/* PRICE */}
+            <div className="col-md-2">
               <input
                 type="number"
                 placeholder="Price"
@@ -109,7 +139,28 @@ export default function RestaurantMenuForm({
               />
             </div>
 
+            {/* CATEGORY */}
             <div className="col-md-3">
+              <select
+                className="form-select"
+                value={form.category || ""}
+                onChange={(e) =>
+                  setForm({ ...form, category: e.target.value })
+                }
+                required
+              >
+                <option value="">Select category</option>
+
+                {categories.map((cat) => (
+                  <option key={cat._id} value={cat._id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* IMAGE */}
+            <div className="col-md-2">
               <input
                 type="file"
                 className="form-control"
@@ -117,31 +168,28 @@ export default function RestaurantMenuForm({
               />
             </div>
 
-            <div className="col-md-3">
-              <select
-                className="form-select"
-                value={form.category}
-                onChange={(e) =>
-                  setForm({ ...form, category: e.target.value })
-                }
-                required
-                >
-                  <option value="">Select Category...</option>
-
-                  {categories.map(cat => (
-                    <option key={cat._id} value={cat._id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-            </div>
-
+            {/* SUBMIT */}
             <div className="col-md-2">
               <button className="btn btn-primary w-100">
                 {editingItem ? "Update" : "Add"}
               </button>
             </div>
+
           </div>
+
+          {/* IMAGE PREVIEW */}
+          {form.image && (
+            <div className="mt-3">
+              <img
+                src={form.image}
+                alt="preview"
+                style={{
+                  width: "100px",
+                  borderRadius: "6px"
+                }}
+              />
+            </div>
+          )}
         </form>
       </div>
     </div>
