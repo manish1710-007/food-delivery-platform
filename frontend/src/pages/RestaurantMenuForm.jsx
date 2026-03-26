@@ -126,14 +126,13 @@ export default function RestaurantMenuForm({
                 }
                 required
                 >
-                <option value="Appetizer">Appetizer</option>
-                <option value="Main Course">Main Course</option>
-                <option value="Dessert">Dessert</option>
-                <option value="Beverage">Beverage</option>
-                <option value="Pizza">Pizza</option>
-                <option value="Burger">Burger</option>
-                <option value="Salad">Salad</option>
-                <option value="Other">Other</option>  
+                  <option value="">Select Category...</option>
+
+                  {categories.map(cat => (
+                    <option key={cat._id} value={cat._id}>
+                      {cat.name}
+                    </option>
+                  ))}
                 </select>
             </div>
 
