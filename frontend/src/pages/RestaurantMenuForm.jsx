@@ -64,11 +64,11 @@ export default function RestaurantMenuForm({
 
   <select
     value={form.category}
-    onChange={e => setForm({ ...form, category: e.target.value })}
+    onChange={(e) => setForm({ ...form, category: e.target.value })}
     //this is where the issue was
   >
 
-    <option>Select category</option>
+    <option value="">Select category</option>
     {categories.map(cat => (
       <option key={cat._id} value={cat._id}>
         {cat.name}
