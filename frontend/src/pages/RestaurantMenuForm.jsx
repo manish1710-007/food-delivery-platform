@@ -60,11 +60,12 @@ export default function RestaurantMenuForm({
 
   useEffect(() => {
     api.get("/categories").then(res=>{setCategories(res.data)});
-  }, []);
+  }, []); 
 
   <select
     value={form.category}
     onChange={e => setForm({ ...form, category: e.target.value })}
+    //this is where the issue was
   >
 
     <option>Select category</option>
