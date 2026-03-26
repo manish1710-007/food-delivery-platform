@@ -4,6 +4,7 @@ import api from "../../api/axios";
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState("");
@@ -56,6 +57,20 @@ export default function AdminProducts() {
     }
   }
 
+  async function fetchCategories() {
+    try {
+      const res = await api.get("/categories");
+      setCategories(res.data);
+    }catch(err){
+      console.error(err);
+    }
+  }
+
+  const getCatId = (cat) => {
+    if (!cat) return "";
+    return typeof cat === "object" ? cat._id : cat;
+  };
+
   const getRestId = (rest) => {
     if (!rest) return "";
     return typeof rest === "object" ? rest._id : rest;
@@ -81,7 +96,7 @@ export default function AdminProducts() {
     setForm({
       name: product.name || "",
       price: product.price || "",
-      category: product.category || "",
+      category: getCatId(product.category) || "",
       restaurant: getRestId(product.restaurant) || "",
       image: product.image || "",
       available: product.available ?? true,
@@ -402,7 +417,18 @@ export default function AdminProducts() {
                     <label className="d-block text-muted small mb-1">&gt; TAXONOMY_TAG</label>
                     <div className="y2k-input-group d-flex">
                       <span className="y2k-input-prefix px-2 py-2 text-cyan border-end border-cyan">TAG:</span>
-                      <input className="y2k-input flex-grow-1 p-2" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} />
+                      <select 
+                      className="y2k-input flex-grow-1 p-2 y2k-select text-uppercase" 
+                      value={form.category} 
+                      onChange={e => setForm({ ...form, category: e.target.value })} 
+                      required
+                    >
+                      <option value="">SELECT_TAG...</option>
+                      {categories.map((c) => (
+                        <option key={c._id} value={c._id}>{c.name}</option>
+                      ))}
+                    </select>
+
                     </div>
                   </div>
                   <div className="col-md-6">
