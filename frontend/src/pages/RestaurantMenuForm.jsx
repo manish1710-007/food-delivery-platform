@@ -65,7 +65,6 @@ export default function RestaurantMenuForm({
   <select
     value={form.category}
     onChange={e => setForm({ ...form, category: e.target.value })}
-    className="form-select"
   >
 
     <option>Select category</option>
