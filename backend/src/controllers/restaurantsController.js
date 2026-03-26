@@ -55,21 +55,24 @@ const getOne = async (req, res, next) => {
 // POST
 const create = async (req, res, next) => {
   try {
-    const { name, address, phone, cuisine, image, location } = req.body;
+    const { name, address, phone, cuisine, image, location, description } = req.body;
     
     if (!name) return res.status(400).json({ message: 'Restaurant name is required' });
 
     const owner = req.user ? req.user._id : null; 
     
+    const status = req.user && req.user.role === 'Admin' ? 'approved' : 'pending';
+
     const rest = await Restaurant.create({
       owner,
       name,
+      description, 
       address,
-      phone,
+      phone: phone || "N/A", 
       image,
-      cuisine: Array.isArray(cuisine) ? cuisine : (cuisine ? [cuisine] : []),
+      cuisine: cuisine ? (Array.isArray(cuisine) ? cuisine : [cuisine]) : ["General"], 
       location: location || undefined,
-      status: "pending" // Force pending status on creation for security
+      status
     });
 
     res.status(201).json(rest);

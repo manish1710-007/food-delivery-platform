@@ -14,6 +14,8 @@ export default function AdminRestaurants() {
     name: "",
     description: "",
     address: "",
+    phone: "",
+    cuisine: "",
     image: "",
   });
 
@@ -35,7 +37,7 @@ export default function AdminRestaurants() {
 
   function openCreate() {
     setEditing(null);
-    setForm({ name: "", description: "", address: "", image: "" });
+    setForm({ name: "", description: "", address: "", phone: "", cuisine: "", image: "" });
     setShowModal(true);
   }
 
@@ -45,6 +47,9 @@ export default function AdminRestaurants() {
       name: r.name,
       description: r.description || "",
       address: r.address || "",
+      phone: r.phone || "",
+      // Handle cuisine array or string
+      cuisine: Array.isArray(r.cuisine) ? r.cuisine.join(", ") : (r.cuisine || ""),
       image: r.image || "",
     });
     setShowModal(true);
@@ -53,16 +58,22 @@ export default function AdminRestaurants() {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
+      // Process cuisine string into array
+      const payload = {
+        ...form,
+        cuisine: form.cuisine.split(",").map(c => c.trim()).filter(c => c)
+      };
+
       if (editing) {
-        await api.put(`/admin/restaurants/${editing._id}`, form);
+        await api.put(`/admin/restaurants/${editing._id}`, payload);
       } else {
-        await api.post("/admin/restaurants", form);
+        await api.post("/admin/restaurants", payload);
       }
       setShowModal(false);
       fetchRestaurants();
     } catch (err) {
       console.error(err);
-      alert("SYS_ERR: WRITE_OPERATION_FAILED");
+      alert(err.response?.data?.message || "SYS_ERR: WRITE_OPERATION_FAILED");
     }
   }
 
@@ -143,7 +154,6 @@ export default function AdminRestaurants() {
     <>
       <style>{styles}</style>
       <div className="y2k-page pb-5">
-        {/* Grid & Scanlines */}
         <div className="y2k-grid-bg"></div>
         <div className="scanlines"></div>
 
@@ -168,7 +178,7 @@ export default function AdminRestaurants() {
 
           <div className="row g-4 align-items-start">
 
-            {/*  LEFT: Node List & Search */}
+            {/* Node List & Search */}
             <div className="col-12 col-xl-9">
               
               {/* Search Bar */}
@@ -216,7 +226,7 @@ export default function AdminRestaurants() {
                           <div className="flex-grow-1 overflow-hidden pe-2 text-start">
                             <div className="text-main fw-bold font-monospace fs-5 text-truncate">{r.name.toUpperCase()}</div>
                             <div className="text-muted small font-monospace text-truncate">
-                                &gt; {r.address.toUpperCase()}
+                                &gt; {r.address?.toUpperCase() || "UNKNOWN_LOC"}
                             </div>
                             <div className="text-cyan small font-monospace text-truncate opacity-75" style={{ fontSize: "0.65rem" }}>
                                 ID: {r._id.toUpperCase()}
@@ -257,7 +267,7 @@ export default function AdminRestaurants() {
               </div>
             </div>
 
-            {/*  RIGHT: System Diagnostics  */}
+            {/*  System Diagnostics */}
             <div className="col-12 col-xl-3 d-none d-xl-block">
               <div className="position-sticky" style={{ top: "80px" }}>
                 <div className="y2k-wire-box p-4 text-start h-100 d-flex flex-column gap-3 border-cyan">
@@ -296,7 +306,7 @@ export default function AdminRestaurants() {
           </div>
         </div>
 
-        {/* ── Y2K MODAL ── */}
+        {/*  Y2K MODAL  */}
         {showModal && (
           <div className="y2k-modal-overlay d-flex align-items-center justify-content-center">
             <div className="y2k-wire-box border-cyan p-0 text-start w-100" style={{ maxWidth: "500px", background: "#02060d" }}>
@@ -319,6 +329,30 @@ export default function AdminRestaurants() {
                 <div className="y2k-input-group d-flex mb-3">
                   <span className="y2k-input-prefix px-2 py-2 text-cyan border-end border-cyan">LOC:</span>
                   <input className="y2k-input flex-grow-1 p-2" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} required />
+                </div>
+
+                {/* PHONE INPUT */}
+                <label className="d-block text-muted small mb-1">&gt; COMM_FREQ (Phone)</label>
+                <div className="y2k-input-group d-flex mb-3">
+                  <span className="y2k-input-prefix px-2 py-2 text-cyan border-end border-cyan">TEL:</span>
+                  <input 
+                    className="y2k-input flex-grow-1 p-2" 
+                    value={form.phone} 
+                    onChange={e => setForm({ ...form, phone: e.target.value })} 
+                    placeholder="e.g. 555-0199" 
+                  />
+                </div>
+
+                {/* CUISINE INPUT */}
+                <label className="d-block text-muted small mb-1">&gt; DATA_TAGS (Cuisine)</label>
+                <div className="y2k-input-group d-flex mb-3">
+                  <span className="y2k-input-prefix px-2 py-2 text-cyan border-end border-cyan">TAG:</span>
+                  <input 
+                    className="y2k-input flex-grow-1 p-2" 
+                    value={form.cuisine} 
+                    onChange={e => setForm({ ...form, cuisine: e.target.value })} 
+                    placeholder="Separate with commas (e.g. Pizza, Fast Food)" 
+                  />
                 </div>
                 
                 <label className="d-block text-muted small mb-1">&gt; NODE_DESCRIPTION</label>
@@ -375,7 +409,6 @@ const styles = `
     --wire-border: 1px solid var(--cyan-glow);
   }
 
-  /* BASE STYLES */
   .y2k-page {
     font-family: 'Share Tech Mono', monospace;
     background: 
@@ -385,7 +418,6 @@ const styles = `
     background-position: center;
     background-attachment: fixed;
     background-repeat: no-repeat;
-    
     min-height: 100vh;
     color: var(--text-main);
     position: relative;
@@ -393,7 +425,6 @@ const styles = `
     width: 100%;
   }
 
-  /* GRID & OVERLAYS */
   .y2k-grid-bg {
     position: absolute; top: 0; left: 0; right: 0; bottom: 0;
     background-image: linear-gradient(var(--cyan-dim) 1px, transparent 1px), linear-gradient(90deg, var(--cyan-dim) 1px, transparent 1px);
@@ -407,7 +438,6 @@ const styles = `
     background-size: 100% 4px; z-index: 9999; pointer-events: none; opacity: 0.6;
   }
 
-  /* UTILS */
   .text-cyan { color: var(--cyan) !important; text-shadow: 0 0 5px rgba(0, 229, 255, 0.3); }
   .text-magenta { color: var(--magenta) !important; text-shadow: 0 0 5px rgba(255, 0, 85, 0.3); }
   .text-amber { color: var(--amber) !important; text-shadow: 0 0 5px rgba(255, 183, 0, 0.3); }
@@ -428,7 +458,6 @@ const styles = `
   .blink { animation: blinker 1s steps(2, start) infinite; }
   @keyframes blinker { to { visibility: hidden; } }
 
-  /* WIREFRAME BOXES */
   .y2k-wire-box {
     background: rgba(2, 6, 13, 0.85);
     backdrop-filter: blur(4px);
@@ -443,10 +472,8 @@ const styles = `
   .y2k-wire-box::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
   .y2k-wire-box.border-magenta::before, .y2k-wire-box.border-magenta::after { border-color: var(--magenta); }
 
-  /* TYPOGRAPHY */
   .y2k-title { font-family: 'DotGothic16', sans-serif; }
 
-  /* AVATAR FRAME */
   .y2k-avatar-frame {
     background: #000;
     position: relative;
@@ -457,7 +484,6 @@ const styles = `
     pointer-events: none;
   }
 
-  /* TERMINAL INPUTS */
   .y2k-input-group {
     background: rgba(0,0,0,0.8);
     border: 1px solid var(--cyan-glow);
@@ -482,7 +508,6 @@ const styles = `
     font-size: 0.95rem;
   }
 
-  /* BUTTONS */
   .y2k-btn-magenta {
     background: rgba(255, 0, 85, 0.1);
     border: 2px solid var(--magenta);
@@ -512,7 +537,6 @@ const styles = `
     text-shadow: 0 0 5px var(--cyan);
   }
 
-  /* DATA ROWS */
   .y2k-data-row {
     background: rgba(0,0,0,0.4);
     transition: all 0.2s;
@@ -524,7 +548,6 @@ const styles = `
   
   .y2k-status-badge { background: rgba(0,0,0,0.6); }
 
-  /* MODAL */
   .y2k-modal-overlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0, 0, 0, 0.85);
@@ -537,7 +560,6 @@ const styles = `
   }
   .y2k-close-btn:hover { color: var(--magenta); }
 
-  /* PROGRESS BAR */
   .y2k-progress-bar { width: 100%; height: 12px; border: 1px solid var(--cyan-glow); background: #000; padding: 2px; }
   .y2k-progress-fill { height: 100%; background: var(--cyan); width: 0%; animation: load ease-out forwards; }
   @keyframes load { to { width: 100%; } }
