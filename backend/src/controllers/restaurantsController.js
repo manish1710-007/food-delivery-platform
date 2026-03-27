@@ -59,27 +59,46 @@ const create = async (req, res, next) => {
     
     if (!name) return res.status(400).json({ message: 'Restaurant name is required' });
 
-    const owner = req.user ? req.user._id : null; 
+    //ensure user is logged in
+    if (!req.user || !req.user._id){
+      return res.status(401).json({ message: 'Restaurant name is required' });
+    }
+
+    const owner = req.user._id;
     
-    const status = req.user && req.user.role === 'Admin' ? 'approved' : 'pending';
+    //admin creats pre-approved restaurants
+    const status = req.user.role === 'Admin' ? 'approved' : 'pending';
 
     const rest = await Restaurant.create({
       owner,
       name,
-      description, 
-      address,
+      description: description || "",
+      address: address || "Unknown Location",
       phone: phone || "N/A", 
-      image,
+      image: image || "",
       cuisine: cuisine ? (Array.isArray(cuisine) ? cuisine : [cuisine]) : ["General"], 
-      location: location || undefined,
-      status
+      location: location || {
+        type: "Point",
+        coordinates: [0, 0]
+      },
+      status,
+      isActive: true
     });
-
     res.status(201).json(rest);
-  } catch (err) {
-    console.error("[SYS.ERR] Restaurant creation failed:", err);
+  }catch (err){
+    console.log("[SYS.ERR] Restaurant creation failed:", err.messsage);
+
+    //if validation error send back a helpful message
+    if (err.name === 'ValidationError'){
+      return res.status(400).json({ message: err.message });
+    }
+
+    //handle duplicate key error
+    if (err.code === 11000){
+      return res.status(400).json({ message: "A restaurant with this name already exists." });
+    }
     next(err);
-  }
+  }  
 };
 
 
@@ -98,9 +117,10 @@ const update = async (req, res, next) => {
       return res.status(403).json({ message: 'Forbidden: You do not have clearance for this node' });
     }
 
-    const { name, address, phone, cuisine, image, location } = req.body;
+    const { name, address, phone, cuisine, image, location, description } = req.body;
     
     if (name !== undefined) rest.name = name;
+    if (description !== undefined) rest.description = description;
     if (address !== undefined) rest.address = address;
     if (phone !== undefined) rest.phone = phone;
     if (image !== undefined) rest.image = image;
@@ -146,4 +166,31 @@ const remove = async (req, res, next) => {
   }
 };
 
-module.exports = { list, getOne, create, update, remove };
+
+const toggleActive = async (req, res, next) => {
+  try{
+    const rest = await Restaurant.findById(req.params.id);
+    if (!rest) return res.status(404).json({ message: 'Node not found' });
+
+    rest.isActive = !rest.isActive;
+    await rest.save();
+  } catch (err){
+    next(err);
+  }
+};
+
+const toggleApproval = async(req, res, nest) => {
+  try{
+    const res = await Restaurant.findById(req.params.id);
+    if (!rest) return res.status(404).json({ message: 'Node not found' });
+
+    res.status = rest.status === 'approved' ? 'pending' : 'approved';
+    await rest.save();
+
+    res.json(rest);
+  } catch (err){
+    next(err);
+  }
+};
+
+module.exports = { list, getOne, create, update, remove, toggleActive, toggleApproval };

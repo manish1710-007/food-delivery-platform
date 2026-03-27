@@ -13,6 +13,7 @@ const restaurantSchema = new mongoose.Schema({
     trim: true,
     index: true
   },
+  description: { type: String, trim: true },
   address: { type: String, trim: true },
   phone: { type: String, trim: true },
   image: { 
@@ -44,7 +45,7 @@ const restaurantSchema = new mongoose.Schema({
       default: [0, 0] // [longitude, latitude]
     }
   },
-  isOpen: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true }
 }, { 
   timestamps: true,
   toJSON: { virtuals: true },
