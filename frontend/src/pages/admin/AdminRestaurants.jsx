@@ -3,6 +3,7 @@ import api from "../../api/axios";
 
 export default function AdminRestaurants() {
   const [restaurants, setRestaurants] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   
@@ -17,10 +18,12 @@ export default function AdminRestaurants() {
     phone: "",
     cuisine: "",
     image: "",
+    owner: "",
   });
 
   useEffect(() => {
     fetchRestaurants();
+    fetchUsers();
   }, []);
 
   async function fetchRestaurants() {
@@ -35,9 +38,18 @@ export default function AdminRestaurants() {
     }
   }
 
+  async function fetchUsers() {
+    try {
+      const res = await api.get("/admin/users");
+      setUsers(res.data);
+    } catch (err) {
+      console.error("Failed to fetch users", err);
+    }
+  }
+
   function openCreate() {
     setEditing(null);
-    setForm({ name: "", description: "", address: "", phone: "", cuisine: "", image: "" });
+    setForm({ name: "", description: "", address: "", phone: "", cuisine: "", image: "", owner: "" });
     setShowModal(true);
   }
 
@@ -48,17 +60,22 @@ export default function AdminRestaurants() {
       description: r.description || "",
       address: r.address || "",
       phone: r.phone || "",
-      // Handle cuisine array or string
       cuisine: Array.isArray(r.cuisine) ? r.cuisine.join(", ") : (r.cuisine || ""),
       image: r.image || "",
+      owner: r.owner?._id || r.owner || "",
     });
     setShowModal(true);
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
+    
+    if (!form.owner) {
+      alert("SYS_WARN: NODE_OWNER_REQUIRED");
+      return;
+    }
+
     try {
-      // Process cuisine string into array
       const payload = {
         ...form,
         cuisine: form.cuisine.split(",").map(c => c.trim()).filter(c => c)
@@ -90,7 +107,7 @@ export default function AdminRestaurants() {
 
   async function toggleActive(id) {
     try {
-      await api.patch(`/admin/restaurants/${id}/toggle`);
+      await api.patch(`/admin/restaurants/${id}/toggle-active`); 
       fetchRestaurants();
     } catch (err) {
       console.error(err);
@@ -177,11 +194,7 @@ export default function AdminRestaurants() {
           </div>
 
           <div className="row g-4 align-items-start">
-
-            {/* Node List & Search */}
             <div className="col-12 col-xl-9">
-              
-              {/* Search Bar */}
               <div className="y2k-wire-box border-cyan p-3 mb-4 text-start">
                   <div className="d-flex justify-content-between border-bottom-wire border-cyan pb-2 mb-3">
                     <span className="text-cyan small font-monospace">/// QUERY_NODES</span>
@@ -197,7 +210,6 @@ export default function AdminRestaurants() {
                   </div>
               </div>
 
-              {/* Node List */}
               <div className="y2k-wire-box border-cyan p-3 p-md-4 text-start">
                 <div className="d-flex justify-content-between border-bottom-wire border-cyan pb-2 mb-3">
                   <span className="text-cyan small font-monospace">/// ACTIVE_ROUTING_TABLE</span>
@@ -212,70 +224,39 @@ export default function AdminRestaurants() {
                   <div className="d-flex flex-column gap-3">
                     {filtered.map(r => (
                       <div key={r._id} className="y2k-data-row d-flex flex-column flex-lg-row justify-content-between p-3 border-cyan gap-3">
-                        
-                        {/* Node Info & Image */}
                         <div className="d-flex align-items-center gap-3 overflow-hidden" style={{ minWidth: "250px" }}>
                           <div className="y2k-avatar-frame border-cyan p-1 flex-shrink-0" style={{ width: "60px", height: "60px" }}>
-                            <img
-                                src={r.image || "https://via.placeholder.com/60"}
-                                className="w-100 h-100"
-                                style={{ objectFit: "cover", filter: "grayscale(100%) contrast(1.5) sepia(1) hue-rotate(140deg)" }}
-                                alt={r.name}
-                            />
+                            <img src={r.image || "https://via.placeholder.com/60"} className="w-100 h-100" style={{ objectFit: "cover", filter: "grayscale(100%) contrast(1.5) sepia(1) hue-rotate(140deg)" }} alt={r.name} />
                           </div>
                           <div className="flex-grow-1 overflow-hidden pe-2 text-start">
                             <div className="text-main fw-bold font-monospace fs-5 text-truncate">{r.name.toUpperCase()}</div>
-                            <div className="text-muted small font-monospace text-truncate">
-                                &gt; {r.address?.toUpperCase() || "UNKNOWN_LOC"}
-                            </div>
-                            <div className="text-cyan small font-monospace text-truncate opacity-75" style={{ fontSize: "0.65rem" }}>
-                                ID: {r._id.toUpperCase()}
-                            </div>
+                            <div className="text-muted small font-monospace text-truncate">&gt; {r.address?.toUpperCase() || "UNKNOWN_LOC"}</div>
+                            <div className="text-cyan small font-monospace text-truncate opacity-75" style={{ fontSize: "0.65rem" }}>OWNER: {r.owner?.name || "UNASSIGNED"}</div>
                           </div>
                         </div>
-
-                        {/* Status Badges */}
                         <div className="d-flex align-items-center gap-2 flex-wrap font-monospace small">
-                          <span className={`y2k-status-badge px-2 py-1 border ${r.status === "approved" ? "border-cyan text-cyan" : "border-amber text-amber"}`}>
-                            [{r.status === "approved" ? "AUTH: OK" : "AUTH: PEND"}]
-                          </span>
-                          <span className={`y2k-status-badge px-2 py-1 border ${r.isActive ? "border-cyan text-cyan" : "border-magenta text-magenta"}`}>
-                            [{r.isActive ? "SYS: ONLINE" : "SYS: OFFLINE"}]
-                          </span>
+                          <span className={`y2k-status-badge px-2 py-1 border ${r.status === "approved" ? "border-cyan text-cyan" : "border-amber text-amber"}`}>[{r.status === "approved" ? "AUTH: OK" : "AUTH: PEND"}]</span>
+                          <span className={`y2k-status-badge px-2 py-1 border ${r.isActive ? "border-cyan text-cyan" : "border-magenta text-magenta"}`}>[{r.isActive ? "SYS: ONLINE" : "SYS: OFFLINE"}]</span>
                         </div>
-
-                        {/* Actions */}
                         <div className="d-flex align-items-center gap-2 flex-wrap justify-content-lg-end">
-                            <button className="y2k-btn-outline text-muted font-monospace px-2 py-1" onClick={() => toggleApproval(r._id)}>
-                                [ AUTH_NODE ]
-                            </button>
-                            <button className="y2k-btn-outline text-muted font-monospace px-2 py-1" onClick={() => toggleActive(r._id)}>
-                                [ FLIP_STATE ]
-                            </button>
-                            <button className="y2k-btn-outline text-cyan font-monospace px-2 py-1" onClick={() => openEdit(r)}>
-                                [ EDIT ]
-                            </button>
-                            <button className="y2k-btn-outline text-magenta font-monospace px-2 py-1" onClick={() => handleDelete(r._id)}>
-                                [ PURGE ]
-                            </button>
+                            <button className="y2k-btn-outline text-muted font-monospace px-2 py-1" onClick={() => toggleApproval(r._id)}>[ AUTH_NODE ]</button>
+                            <button className="y2k-btn-outline text-muted font-monospace px-2 py-1" onClick={() => toggleActive(r._id)}>[ FLIP_STATE ]</button>
+                            <button className="y2k-btn-outline text-cyan font-monospace px-2 py-1" onClick={() => openEdit(r)}>[ EDIT ]</button>
+                            <button className="y2k-btn-outline text-magenta font-monospace px-2 py-1" onClick={() => handleDelete(r._id)}>[ PURGE ]</button>
                         </div>
-
                       </div>
                     ))}
                   </div>
                 )}
               </div>
             </div>
-
-            {/*  System Diagnostics */}
+            {/* Diagnostics Panel */}
             <div className="col-12 col-xl-3 d-none d-xl-block">
               <div className="position-sticky" style={{ top: "80px" }}>
                 <div className="y2k-wire-box p-4 text-start h-100 d-flex flex-column gap-3 border-cyan">
                   <div className="d-flex justify-content-between border-bottom-wire border-cyan pb-2 mb-2">
                     <span className="text-cyan small font-monospace">/// NETWORK_TOPOLOGY</span>
                   </div>
-
-                  {/* Fake Routing Map */}
                   <div className="text-center font-monospace text-cyan my-2" style={{ fontSize: "0.55rem", whiteSpace: "pre", lineHeight: "1.2" }}>
 {`
     [ROOT]
@@ -288,30 +269,24 @@ export default function AdminRestaurants() {
  | |     | |
 `}
                   </div>
-
                   <div className="border-bottom-wire border-cyan"></div>
-
-                  {/* Node Stats */}
                   <div className="text-muted font-monospace mt-2" style={{ fontSize: "0.7rem", lineHeight: "1.8" }}>
                     &gt; TOTAL_NODES: <span className="text-cyan">{restaurants.length}</span><br/>
                     &gt; ONLINE: <span className="text-cyan">{restaurants.filter(r => r.isActive).length}</span><br/>
                     &gt; OFFLINE: <span className="text-magenta">{restaurants.filter(r => !r.isActive).length}</span><br/>
                     &gt; PENDING_AUTH: <span className="text-amber">{restaurants.filter(r => r.status !== "approved").length}</span>
                   </div>
-
                 </div>
               </div>
             </div>
-
           </div>
         </div>
 
-        {/*  Y2K MODAL  */}
+        {/* Y2K MODAL  */}
         {showModal && (
           <div className="y2k-modal-overlay d-flex align-items-center justify-content-center">
             <div className="y2k-wire-box border-cyan p-0 text-start w-100" style={{ maxWidth: "500px", background: "#02060d" }}>
               
-              {/* Modal Title Bar */}
               <div className="bg-cyan text-dark d-flex justify-content-between align-items-center p-2 font-monospace fw-bold">
                 <span>{editing ? "RECONFIGURE_NODE.exe" : "INITIALIZE_NODE.exe"}</span>
                 <button className="y2k-close-btn" onClick={() => setShowModal(false)}>[ X ]</button>
@@ -319,6 +294,23 @@ export default function AdminRestaurants() {
               
               <form className="p-4 font-monospace" onSubmit={handleSubmit}>
                 
+                {/* OWNER SELECTION DROPDOWN */}
+                <label className="d-block text-muted small mb-1">&gt; ASSIGN_OWNER_NODE</label>
+                <div className="y2k-input-group d-flex mb-3">
+                  <span className="y2k-input-prefix px-2 py-2 text-cyan border-end border-cyan">USR:</span>
+                  <select 
+                    className="y2k-input flex-grow-1 p-2 bg-dark text-cyan" 
+                    value={form.owner} 
+                    onChange={e => setForm({ ...form, owner: e.target.value })} 
+                    required
+                  >
+                    <option value="">SELECT_SYSTEM_USER...</option>
+                    {users.map(u => (
+                      <option key={u._id} value={u._id}>{u.name} ({u.email})</option>
+                    ))}
+                  </select>
+                </div>
+
                 <label className="d-block text-muted small mb-1">&gt; NODE_IDENTIFIER</label>
                 <div className="y2k-input-group d-flex mb-3">
                   <span className="y2k-input-prefix px-2 py-2 text-cyan border-end border-cyan">ID:</span>
@@ -331,28 +323,16 @@ export default function AdminRestaurants() {
                   <input className="y2k-input flex-grow-1 p-2" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} required />
                 </div>
 
-                {/* PHONE INPUT */}
                 <label className="d-block text-muted small mb-1">&gt; COMM_FREQ (Phone)</label>
                 <div className="y2k-input-group d-flex mb-3">
                   <span className="y2k-input-prefix px-2 py-2 text-cyan border-end border-cyan">TEL:</span>
-                  <input 
-                    className="y2k-input flex-grow-1 p-2" 
-                    value={form.phone} 
-                    onChange={e => setForm({ ...form, phone: e.target.value })} 
-                    placeholder="e.g. 555-0199" 
-                  />
+                  <input className="y2k-input flex-grow-1 p-2" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
                 </div>
 
-                {/* CUISINE INPUT */}
                 <label className="d-block text-muted small mb-1">&gt; DATA_TAGS (Cuisine)</label>
                 <div className="y2k-input-group d-flex mb-3">
                   <span className="y2k-input-prefix px-2 py-2 text-cyan border-end border-cyan">TAG:</span>
-                  <input 
-                    className="y2k-input flex-grow-1 p-2" 
-                    value={form.cuisine} 
-                    onChange={e => setForm({ ...form, cuisine: e.target.value })} 
-                    placeholder="Separate with commas (e.g. Pizza, Fast Food)" 
-                  />
+                  <input className="y2k-input flex-grow-1 p-2" value={form.cuisine} onChange={e => setForm({ ...form, cuisine: e.target.value })} placeholder="Pizza, Burgers" />
                 </div>
                 
                 <label className="d-block text-muted small mb-1">&gt; NODE_DESCRIPTION</label>
@@ -362,19 +342,10 @@ export default function AdminRestaurants() {
                 
                 <label className="d-block text-muted small mb-1">&gt; UPLOAD_DATA_PACKET (Image)</label>
                 <div className="y2k-input-group d-flex mb-3">
-                  <input type="file" className="y2k-input flex-grow-1 p-2 w-100" onChange={uploadImage} style={{ fontSize: "0.8rem" }} />
+                  <input type="file" className="y2k-input flex-grow-1 p-2 w-100" onChange={uploadImage} />
                 </div>
                 
-                {uploading && <div className="text-cyan small blink mb-3">&gt; TRANSMITTING_PACKET_TO_CLOUD...</div>}
-                
-                {form.image && (
-                  <div className="mb-4">
-                    <div className="text-muted small mb-1">&gt; PREVIEW_RENDER</div>
-                    <div className="y2k-avatar-frame border-cyan p-1" style={{ width: "120px", height: "80px" }}>
-                        <img src={form.image} className="w-100 h-100" alt="Preview" style={{ objectFit: "cover", filter: "grayscale(100%) contrast(1.5) sepia(1) hue-rotate(140deg)" }} />
-                    </div>
-                  </div>
-                )}
+                {uploading && <div className="text-cyan small blink mb-3">&gt; TRANSMITTING...</div>}
                 
                 <div className="d-flex justify-content-end gap-3 mt-4 border-top-wire pt-3">
                   <button className="y2k-btn-outline text-muted px-3" type="button" onClick={() => setShowModal(false)}>[ CANCEL ]</button>
@@ -392,6 +363,7 @@ export default function AdminRestaurants() {
   );
 }
 
+// ... (Keep existing styles)
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DotGothic16&family=Share+Tech+Mono&display=swap');
 
